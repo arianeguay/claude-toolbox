@@ -21,6 +21,7 @@ skills/
   comment-audit/       # audit changed-file comments (noise/stale/missing/over-doc) before merge
   mr-description/      # generate/update a PR/MR title + description from the diff (gh/glab)
   review-comments-resolver/ # resolve human + bot (CodeRabbit/Bugbot) review comments (gh/glab)
+  mr-ship/             # orchestrator: runs the pre-review pipeline (calls the skills below in order)
   uniformity-check/    # check a diff for drift vs the codebase (per-stack baselines in stacks/)
   am-i-stuck/          # Shape Up hill-chart / "am I in the tunnel?" self-diagnostic
   what-did-we-learn/   # end-of-session capture of generalizable learnings into memory
