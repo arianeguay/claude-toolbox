@@ -13,6 +13,7 @@ project, not tied to a specific codebase or employer. This repo is the source of
 ```text
 skills/
   git-clean-history/   # rewrite messy git history into a clean, senior-level log (git-only)
+  clean-worktree/      # remove stale worktrees/branches after squash-merge (via [gone] upstream)
   am-i-stuck/          # Shape Up hill-chart / "am I in the tunnel?" self-diagnostic
   what-did-we-learn/   # end-of-session capture of generalizable learnings into memory
   peon-ping-config/    # configure peon-ping sound notifications
