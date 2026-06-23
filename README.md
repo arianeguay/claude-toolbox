@@ -15,6 +15,7 @@ skills/
   git-clean-history/   # rewrite messy git history into a clean, senior-level log (git-only)
   clean-worktree/      # remove stale worktrees/branches after squash-merge (via [gone] upstream)
   fix-ci/              # diagnose + fix CI failures (GitLab/GitHub, multi-toolchain)
+  smallest-footprint/  # audit a MR/PR diff and reduce its surface area
   am-i-stuck/          # Shape Up hill-chart / "am I in the tunnel?" self-diagnostic
   what-did-we-learn/   # end-of-session capture of generalizable learnings into memory
   peon-ping-config/    # configure peon-ping sound notifications
