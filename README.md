@@ -16,6 +16,7 @@ skills/
   clean-worktree/      # remove stale worktrees/branches after squash-merge (via [gone] upstream)
   fix-ci/              # diagnose + fix CI failures (GitLab/GitHub, multi-toolchain)
   smallest-footprint/  # audit a MR/PR diff and reduce its surface area
+  uniformity-check/    # check a diff for drift vs the codebase (per-stack baselines in stacks/)
   am-i-stuck/          # Shape Up hill-chart / "am I in the tunnel?" self-diagnostic
   what-did-we-learn/   # end-of-session capture of generalizable learnings into memory
 install.sh             # symlink every skills/* into ~/.claude/skills (idempotent)
