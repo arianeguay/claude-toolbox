@@ -17,6 +17,7 @@ skills/
   fix-ci/              # diagnose + fix CI failures (GitLab/GitHub, multi-toolchain)
   smallest-footprint/  # audit a MR/PR diff and reduce its surface area
   mechanical-checks/   # pre-review scan for mechanical violations (per-stack checks in stacks/)
+  context-validator/   # judgment-level pre-review: scope + code-path analysis, then a precise human action list
   uniformity-check/    # check a diff for drift vs the codebase (per-stack baselines in stacks/)
   am-i-stuck/          # Shape Up hill-chart / "am I in the tunnel?" self-diagnostic
   what-did-we-learn/   # end-of-session capture of generalizable learnings into memory
