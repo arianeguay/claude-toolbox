@@ -6,11 +6,14 @@ user-invocable: true
 
 # Review Comments Resolver
 
-Process all unresolved review comments on a PR/MR. **Collect every source → triage together (role-weighted) → fix approved → verify → reply + resolve.** Provider-agnostic (GitHub `gh` / GitLab `glab`).
+Process all unresolved review comments on a PR/MR. **Collect every source → triage together (role-weighted) → fix approved → verify → reply + resolve.** This file is the method (identical on every host); the exact API calls live in the matching provider file.
 
 ```bash
-case "$(git remote get-url origin)" in *github*) HOST=gh;; *gitlab*) HOST=glab;; esac
+case "$(git remote get-url origin)" in *github*) HOST=github;; *gitlab*) HOST=gitlab;; esac
+# Read providers/$HOST.md — it has the full worked flow for: detect PR/MR · list inline+general
+# comments · await in-progress bots · reply to a thread · resolve a thread.
 ```
+For every step below that says *(see provider file)*, use the calls in `providers/$HOST.md`.
 
 ## When to Use
 - `/review-comments-resolver` or `… <PR/MR_NUMBER>`
@@ -19,10 +22,7 @@ case "$(git remote get-url origin)" in *github*) HOST=gh;; *gitlab*) HOST=glab;;
 ---
 
 ## Step 1 — Detect the PR/MR
-- **gh:** `gh pr view "$(git branch --show-current)" --json number,title,url`
-- **glab:** `glab mr view "$(git branch --show-current)" -F json`
-
-If none, STOP — ask for the number.
+Detect the PR/MR for the current branch *(see provider file)*. If none, STOP — ask for the number.
 
 ---
 
@@ -30,10 +30,10 @@ If none, STOP — ask for the number.
 
 A review in flight = incomplete findings. Detect active bots and poll (every 30s, ~5–10 min max) until done, then proceed. If no bots are present, skip.
 
-- **CodeRabbit** — done when its summary comment appears (body contains `summarize by coderabbit.ai`). Author: `coderabbitai`/`coderabbitai[bot]` (gh) or `^group_\d+_bot_` (glab).
-- **Cursor Bugbot** — author `cursor[bot]` (gh) or `^project_\d+_bot_` (glab). On glab, an `eyes` award-emoji on the MR/trigger comment = still running; `thumbsup`/`white_check_mark` with no `eyes` = done.
+- **CodeRabbit** — done when its summary comment appears (body contains `summarize by coderabbit.ai`).
+- **Cursor Bugbot** — has an in-progress signal per host.
 
-See **Provider commands** below for the exact list/await calls.
+The author patterns and the await signals differ per host *(see provider file)*.
 
 ---
 
@@ -125,18 +125,14 @@ Report: `Resolved {N} thread(s) ({X} CodeRabbit, {Y} Bugbot, {Z} human).`
 
 ---
 
-## Provider commands
+## Provider mechanics
 
-| Action | GitHub (`gh`) | GitLab (`glab`) |
-|--------|---------------|-----------------|
-| Inline review comments | `gh api repos/{o}/{r}/pulls/{n}/comments --paginate` | `glab api projects/:id/merge_requests/{iid}/notes --paginate` (use `/notes`, NOT `/discussions` — its `--paginate` silently drops items) |
-| General comments | `gh api repos/{o}/{r}/issues/{n}/comments --paginate` | (same `/notes` call; `position == null`) |
-| Resolved status / threads | GraphQL: `pullRequest.reviewThreads { isResolved, id, comments }` | discussion objects: `resolvable`/`resolved` fields |
-| Bot await signal | CodeRabbit summary comment; `cursor[bot]` check/comment | award-emoji (`eyes` vs `thumbsup`) on MR/trigger note |
-| Reply to a thread | `gh api repos/{o}/{r}/pulls/{n}/comments/{cid}/replies -f body=…` | `glab api projects/:id/merge_requests/{iid}/discussions/{did}/notes -f body=…` |
-| Resolve a thread | GraphQL mutation `resolveReviewThread(input:{threadId})` | `glab api projects/:id/merge_requests/{iid}/discussions/{did} --method PUT -f resolved=true` |
+The exact API calls — detect PR/MR, list inline + general comments, await in-progress bots, reply to a thread, resolve a thread — live in the provider file for the detected host:
 
-`{o}/{r}` = owner/repo (`gh repo view --json owner,name`). On GitHub, resolved-state and resolution live in GraphQL review threads; the REST comment id ≠ the GraphQL thread id — map via the thread's comments.
+- **`providers/github.md`** — `gh` + GraphQL review threads (resolution is GraphQL-only; REST comment id ≠ thread id).
+- **`providers/gitlab.md`** — `glab` REST notes/discussions (use `/notes`, not `/discussions`).
+
+Read the one matching `$HOST` and use its worked flow wherever a step says *(see provider file)*.
 
 ---
 
