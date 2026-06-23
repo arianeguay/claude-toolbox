@@ -64,6 +64,7 @@ If no files changed → `✅ No changes — uniformity check skipped` and exit.
 | `package.json` has `react` + a Tailwind config | `stacks/ts-react-tailwind.md` |
 | `package.json`, TS, no React | `stacks/ts-node.md` |
 | `pyproject.toml` / `setup.py` / `manage.py` | `stacks/python.md` |
+| `composer.json` / `*.php` | `stacks/php.md` |
 | none of the above | skip baseline; rely on repo docs + siblings, note it in the report |
 
 3. For each changed file, **sample its siblings** (other files in the same directory) to learn the local idiom before judging the diff.
