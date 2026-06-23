@@ -18,8 +18,6 @@ skills/
   smallest-footprint/  # audit a MR/PR diff and reduce its surface area
   am-i-stuck/          # Shape Up hill-chart / "am I in the tunnel?" self-diagnostic
   what-did-we-learn/   # end-of-session capture of generalizable learnings into memory
-  peon-ping-config/    # configure peon-ping sound notifications
-  peon-ping-toggle/    # mute/unmute peon-ping sounds mid-session
 install.sh             # symlink every skills/* into ~/.claude/skills (idempotent)
 ```
 
