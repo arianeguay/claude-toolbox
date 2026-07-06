@@ -49,3 +49,17 @@ back it up first, or `--uninstall` to remove only the symlinks this repo created
 
 The repo is the source of truth. On each machine: `git pull` to receive, `git push` to
 share. No copy step — the symlinks track the working tree.
+
+## Config templates
+
+`configs/settings.json` and `configs/known_marketplaces.json` are cleaned copies of
+`~/.claude/settings.json` and `~/.claude/plugins/known_marketplaces.json` — stripped of
+machine-specific junk (marketplace `installLocation`/`lastUpdated`, and personal/local-only
+tool hooks like peon-ping and agent-flow, same exclusion bar as skills above).
+
+Not auto-installed — copy manually and reconcile:
+- `settings.json` hook paths use `$HOME` as a placeholder; the two referenced scripts
+  (`guard-skill-deletion.sh`, `symlink-worktree-local-config.sh`) must exist at
+  `~/.claude/hooks/` on the target machine — they aren't part of this repo.
+- `known_marketplaces.json` — Claude Code regenerates `installLocation`/`lastUpdated`
+  on next marketplace refresh; just needs `source` to re-add each marketplace.
