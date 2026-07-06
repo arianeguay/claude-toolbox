@@ -2,28 +2,39 @@
 # Symlink the skills from this repo into ~/.claude so Claude Code picks them up.
 # Idempotent. The repo stays the source of truth; edit here, changes are live immediately.
 #
-#   ./install.sh              # link (refuses to clobber a real dir/file that isn't already our symlink)
-#   ./install.sh --force      # back up any conflicting real path to <path>.bak-<ts>, then link
-#   ./install.sh --uninstall  # remove only the symlinks we created
+#   ./install.sh                                  # link all, bare names (refuses to clobber a real dir/file that isn't already our symlink)
+#   ./install.sh --force                          # back up any conflicting real path to <path>.bak-<ts>, then link
+#   ./install.sh --uninstall                      # remove only the symlinks we created (bare names)
+#   ./install.sh --prefix my --only mr-description,git-clean-history
+#                                                  # link only the named skills, as my-<name> — use when a bare
+#                                                  # name collides with a project's own .claude/skills/<name>
+#   ./install.sh --prefix my --only ... --uninstall
+#                                                  # remove only the prefixed symlinks for the named skills
 set -euo pipefail
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CLAUDE="${CLAUDE_HOME:-$HOME/.claude}"
-FORCE=0; UNINSTALL=0
-for arg in "$@"; do
-  case "$arg" in
+FORCE=0; UNINSTALL=0; PREFIX=""; ONLY=""
+while [ $# -gt 0 ]; do
+  case "$1" in
     --force) FORCE=1 ;;
     --uninstall) UNINSTALL=1 ;;
-    *) echo "unknown flag: $arg" >&2; exit 2 ;;
+    --prefix) PREFIX="$2"; shift ;;
+    --only) ONLY="$2"; shift ;;
+    *) echo "unknown flag: $1" >&2; exit 2 ;;
   esac
+  shift
 done
 
 # Auto-discover every skill in skills/ — no hardcoded list to keep in sync.
+# --only filters to a comma-separated subset; --prefix names the dest link "<prefix>-<name>" instead of "<name>".
 LINKS=()
 for dir in "$REPO"/skills/*/; do
   [ -d "$dir" ] || continue
   name="$(basename "$dir")"
-  LINKS+=("skills/$name:skills/$name")
+  if [ -n "$ONLY" ] && [[ ",$ONLY," != *",$name,"* ]]; then continue; fi
+  dest_name="${PREFIX:+$PREFIX-}$name"
+  LINKS+=("skills/$name:skills/$dest_name")
 done
 
 link_one() {
