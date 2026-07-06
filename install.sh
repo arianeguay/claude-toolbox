@@ -6,10 +6,12 @@
 #   ./install.sh --force                          # back up any conflicting real path to <path>.bak-<ts>, then link
 #   ./install.sh --uninstall                      # remove only the symlinks we created (bare names)
 #   ./install.sh --prefix my --only mr-description,git-clean-history
-#                                                  # link only the named skills, as my-<name> — use when a bare
-#                                                  # name collides with a project's own .claude/skills/<name>
-#   ./install.sh --prefix my --only ... --uninstall
-#                                                  # remove only the prefixed symlinks for the named skills
+#                                                  # COPY (not symlink) the named skills as my-<name>, rewriting the
+#                                                  # SKILL.md frontmatter `name:` to match — use when a bare name
+#                                                  # collides with a project's own .claude/skills/<name>. A symlink
+#                                                  # alone isn't enough: Claude Code keys off the frontmatter `name:`,
+#                                                  # not the directory name, so an aliased dir must carry its own name.
+#                                                  # Re-run after editing an aliased skill's source — it's a copy, not live.
 set -euo pipefail
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -38,9 +40,21 @@ for dir in "$REPO"/skills/*/; do
 done
 
 link_one() {
-  local src="$REPO/$1" dest="$CLAUDE/$2"
+  local src="$REPO/$1" dest="$CLAUDE/$2" dest_name="$(basename "$2")"
   mkdir -p "$(dirname "$dest")"
-  if [ -L "$dest" ]; then
+  if [ -n "$PREFIX" ]; then
+    # Aliased: copy (not symlink) + rewrite the frontmatter `name:` so the alias
+    # is self-consistent — Claude Code resolves skills by frontmatter name, not dirname.
+    if [ -e "$dest" ] && [ ! -L "$dest" ] && [ "$FORCE" -ne 1 ] && [ ! -f "$dest/.toolbox-alias" ]; then
+      echo "  ⚠ skipped   $dest already exists and isn't an alias we made (use --force)"
+      return
+    fi
+    rm -rf "$dest"
+    cp -r "$src" "$dest"
+    sed -i '' "s/^name: .*/name: $dest_name/" "$dest/SKILL.md"
+    touch "$dest/.toolbox-alias"
+    echo "  ✓ aliased   $dest  (name: $dest_name)"
+  elif [ -L "$dest" ]; then
     ln -sfn "$src" "$dest"; echo "  ✓ relinked  $dest"
   elif [ -e "$dest" ]; then
     if [ "$FORCE" -eq 1 ]; then
@@ -57,7 +71,13 @@ link_one() {
 
 unlink_one() {
   local src="$REPO/$1" dest="$CLAUDE/$2"
-  if [ -L "$dest" ] && [ "$(readlink "$dest")" = "$src" ]; then
+  if [ -n "$PREFIX" ]; then
+    if [ -f "$dest/.toolbox-alias" ]; then
+      rm -rf "$dest"; echo "  ✓ removed   $dest"
+    else
+      echo "  – left      $dest (not an alias we made)"
+    fi
+  elif [ -L "$dest" ] && [ "$(readlink "$dest")" = "$src" ]; then
     rm "$dest"; echo "  ✓ removed   $dest"
   else
     echo "  – left      $dest (not our symlink)"
