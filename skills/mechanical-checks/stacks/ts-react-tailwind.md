@@ -45,6 +45,16 @@ console.log(n?`\n${n} missing key(s)`:"✅ locale parity OK");
 ```
 Auto-fixable: add the missing keys (flag for translation — never copy English into another locale silently).
 
+## C6 — Orphan i18n keys (only if the diff touches a locale dir)
+Keys added/removed in the diff that no `t('key')` call in `src/` still references.
+```bash
+CHANGED_KEYS=$(git diff "$DIFF" -- 'public/locales/en-US/translation.json' | grep '^[+-]' | grep -v '^[+-][+-][+-]' | grep -oE '"[a-zA-Z_][a-zA-Z0-9_.]*"' | tr -d '"' | sort -u)
+for key in $CHANGED_KEYS; do
+  grep -rq "t(['\"]${key}['\"])\|t(['\"]${key}\." src/ --include="*.ts" --include="*.tsx" || echo "ORPHAN  $key"
+done
+```
+Slow on a large codebase — run on demand, not by default. Auto-fixable: remove the orphan key from all locales.
+
 ## Verify after fixes
 ```bash
 npm run check && npm run type-check    # substitute the repo's actual scripts
