@@ -49,10 +49,10 @@ Read the repo's convention docs (`CLAUDE.md`/`AGENTS.md`/`CONTRIBUTING.md`), spe
 | 💀 | **Stale** | Doesn't match the implementation — wrong param names, outdated behavior, copy-paste leftovers. |
 | 👻 | **Missing** | Non-obvious logic with no "why" — business rules, workarounds, implicit coupling, side effects. |
 | 💣 | **Rot risk** | Will go stale when code changes — references specific versions, hardcoded values, unenforced assumptions. |
-| 📚 | **Over-doc** | Excessive doc-comments on simple functions, `@param` that mirrors the type signature, blocks on self-evident code. |
+| 📚 | **Over-doc** | Excessive doc-comments on simple functions, `@param` that mirrors the type signature, blocks on self-evident code, or a valid multi-fact WHY comment padded with connective prose instead of one tight clause per fact. |
 | 🚫 | **Bad TODO** | TODO with no tracker reference or vague removal condition. Match the repo's convention (e.g. `TODO(ABC-123):` or `TODO(#123):`). |
 
-**Decision guide:** explaining WHAT → is the code self-evident? yes → 🔊 cut; no → keep. Explaining WHY → still accurate? no → 💀 fix/remove. A TODO → has a reference? no → 🚫 fix.
+**Decision guide:** explaining WHAT → is the code self-evident? yes → 🔊 cut; no → keep. Explaining WHY → still accurate? no → 💀 fix/remove; yes but prose exceeds one clause per fact → 📚 compress (keep every fact, cut connective filler). A TODO → has a reference? no → 🚫 fix.
 
 **Severity:** `cut` (remove — zero value or misleading) · `fix` (rewrite — intent valid, execution wrong) · `add` (missing "why" for non-obvious logic) · `note` (flag only).
 
@@ -98,5 +98,6 @@ docs: audit comments — remove noise, fix stale, add missing
 7. **Business-logic rationale** — explain the domain rule, not the mechanics.
 8. **Document implicit coupling** — when two pieces must stay in sync without type enforcement.
 9. **Know when NOT to comment** — self-evident code, simple getters, type-documented interfaces.
+10. **Keep WHY comments dense** — one tight clause per fact, no padded connective prose, even when a comment legitimately covers several facts.
 
 **Golden rule:** every comment should teach something the code cannot. If it doesn't, it's noise.
