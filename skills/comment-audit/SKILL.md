@@ -6,7 +6,7 @@ user-invocable: true
 
 # Comment Audit
 
-Audit comments in the changed files against the project's comment standards. On a senior codebase, **too many comments is as bad as too few** — every comment should teach something the code cannot.
+Audit comments in the changed files against the project's comment standards. On a senior codebase, **too many comments is as bad as too few** — every comment should teach something the code cannot. Default to cutting: when a finding is borderline between `keep` and `cut`, cut it. A small senior team skims code, not comment blocks — comments only earn their place by teaching something the code can't say alone.
 
 ## When to Use
 - `/comment-audit` or `/comment-audit <PR/MR_NUMBER>`
@@ -54,7 +54,10 @@ Read the repo's convention docs (`CLAUDE.md`/`AGENTS.md`/`CONTRIBUTING.md`), spe
 
 **Decision guide:** explaining WHAT → is the code self-evident? yes → 🔊 cut; no → keep. Explaining WHY → still accurate? no → 💀 fix/remove; yes but prose exceeds one clause per fact → 📚 compress (keep every fact, cut connective filler). A TODO → has a reference? no → 🚫 fix.
 
-**Severity:** `cut` (remove — zero value or misleading) · `fix` (rewrite — intent valid, execution wrong) · `add` (missing "why" for non-obvious logic) · `note` (flag only).
+**Severity:** `cut` (remove — zero value or misleading) · `fix` (rewrite — intent valid, execution wrong) · `compress` (accurate, non-stale, but longer than one clause per fact, or restated near-verbatim in a sibling file) · `add` (missing "why" for non-obvious logic) · `note` (flag only).
+
+**Mandatory compress pass — do not skip:** "accurate" is not the same as "done." Every comment that survives the 🔊/💀/🚫 filters as a `keep` still owes one more check: count its sentences against its facts. >1 sentence per fact, or any connective tissue ("so that", "which means", "in other words") → `compress`, don't leave it as `keep`. This is the pass that gets skipped when a comment is true and non-redundant — verified-accurate is exactly when reviewers stop scrutinizing and let bloat through.
+Also check duplication across the diff: if two-plus files in the same diff carry the same rationale restated in their own words (e.g. three hooks each explaining "why this guard exists" in full), that's `compress` too — the rationale belongs in one place (the shared function/hook/base it's about), with siblings pointing at it in a clause, not repeating it.
 
 ---
 
