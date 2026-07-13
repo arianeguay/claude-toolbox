@@ -27,6 +27,7 @@ skills/
   am-i-stuck/          # Shape Up hill-chart / "am I in the tunnel?" self-diagnostic
   what-did-we-learn/   # end-of-session capture of generalizable learnings into memory
 install.sh             # symlink every skills/* into ~/.claude/skills (idempotent)
+CLAUDE.md               # portable personal working-style template (see below)
 ```
 
 ## Install (any machine)
@@ -64,3 +65,14 @@ Not auto-installed — copy manually and reconcile:
   `~/.claude/hooks/` on the target machine — they aren't part of this repo.
 - `known_marketplaces.json` — Claude Code regenerates `installLocation`/`lastUpdated`
   on next marketplace refresh; just needs `source` to re-add each marketplace.
+
+## Personal CLAUDE.md template
+
+`CLAUDE.md` at repo root is the instance-agnostic slice of how I like to work —
+collaboration style, code philosophy, git conventions, trade-off presentation, language
+rule. No employer/team/project content lives here.
+
+Not auto-installed (same reasoning as configs above — `~/.claude/CLAUDE.md` on a machine
+already set up for a job may carry company-specific context that shouldn't be clobbered):
+copy or merge it into `~/.claude/CLAUDE.md` by hand, then add company/project specifics on
+top of it.
