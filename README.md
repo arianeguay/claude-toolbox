@@ -19,6 +19,7 @@ skills/
   mechanical-checks/   # pre-review scan for mechanical violations (per-stack checks in stacks/)
   context-validator/   # judgment-level pre-review: scope + code-path analysis, then a precise human action list
   comment-audit/       # audit changed-file comments (noise/stale/missing/over-doc) before merge
+  merge-parent/        # merge the parent/default branch into current, w/ mechanical anti-drop check on conflicts
   mr-description/      # generate/update a PR/MR title + description from the diff (gh/glab)
   review-comments-resolver/ # resolve human + bot (CodeRabbit/Bugbot) review comments (gh/glab)
   mr-ship/             # orchestrator: runs the pre-review pipeline (calls the skills below in order)
