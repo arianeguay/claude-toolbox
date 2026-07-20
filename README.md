@@ -1,8 +1,9 @@
 # claude-toolbox
 
 Personal, **instance-agnostic** Claude Code skills — the ones that are useful in *any*
-project, not tied to a specific codebase or employer. This repo is the source of truth;
-`install.sh` symlinks each skill into `~/.claude/skills/`, so edits here are live immediately.
+project, not tied to a specific codebase or employer. This repo is a **Claude Code plugin
+marketplace**: it ships one plugin, `toolbox`, containing every skill here plus the
+worktree/skill-safety hooks. Sync across machines is `/plugin marketplace update`.
 
 > Project-coupled skills (GrayOS / noether / nabla, MR pipelines, hospital personas, etc.)
 > do **not** belong here — they live with their project. The bar for inclusion is:
@@ -11,6 +12,9 @@ project, not tied to a specific codebase or employer. This repo is the source of
 ## Contents
 
 ```text
+.claude-plugin/
+  marketplace.json     # marketplace catalog (lists the `toolbox` plugin)
+  plugin.json          # the `toolbox` plugin manifest (name, version)
 skills/
   git-clean-history/   # rewrite messy git history into a clean, senior-level log (git-only)
   clean-worktree/      # remove stale worktrees/branches after squash-merge (via [gone] upstream)
@@ -26,45 +30,72 @@ skills/
   uniformity-check/    # check a diff for drift vs the codebase (per-stack baselines in stacks/)
   am-i-stuck/          # Shape Up hill-chart / "am I in the tunnel?" self-diagnostic
   what-did-we-learn/   # end-of-session capture of generalizable learnings into memory
-install.sh             # symlink every skills/* into ~/.claude/skills (idempotent)
-CLAUDE.md               # portable personal working-style template (see below)
+hooks/
+  hooks.json           # SessionStart/PreToolUse/PostToolUse wiring (paths via ${CLAUDE_PLUGIN_ROOT})
+  guard-skill-deletion.sh          # PreToolUse(Bash) — block accidental skill deletion
+  symlink-worktree-local-config.sh # SessionStart + PostToolUse(Bash) — link local config into worktrees
+CLAUDE.md              # portable personal working-style template (see below)
 ```
 
 ## Install (any machine)
 
-```bash
-git clone git@github.com:<user>/claude-toolbox.git ~/dev/claude-toolbox
-cd ~/dev/claude-toolbox && ./install.sh
+Add the marketplace once, then install the plugin:
+
+```text
+/plugin marketplace add arianeguay/claude-toolbox
+/plugin install toolbox@claude-toolbox
 ```
 
-`install.sh` auto-discovers every directory under `skills/` — no list to maintain.
-It refuses to clobber a real (non-symlink) skill of the same name; pass `--force` to
-back it up first, or `--uninstall` to remove only the symlinks this repo created.
+Skills are namespaced under the plugin: `/toolbox:mr-ship`, `/toolbox:fix-ci`, etc.
+The hooks activate automatically when the plugin is enabled — no manual copy step.
+
+## Sync across machines
+
+The repo is the source of truth. To ship a change everywhere:
+
+1. Commit + push to `main`.
+2. Bump `version` in `.claude-plugin/plugin.json` (users only receive updates when it changes).
+3. On each machine: `/plugin marketplace update` — Claude Code refetches the plugin.
 
 ## Add a skill
 
 1. Drop a `skills/<name>/SKILL.md` (and any support files) into the repo.
-2. `./install.sh` (picks up the new dir automatically).
-3. Commit + push. Other machines: `git pull` — symlinks already point at the live dir.
+2. Commit + push, bump `plugin.json` version.
+3. Other machines: `/plugin marketplace update`. The skill appears as `/toolbox:<name>`.
 
-## Sync across machines
+## Develop locally (live edit)
 
-The repo is the source of truth. On each machine: `git pull` to receive, `git push` to
-share. No copy step — the symlinks track the working tree.
+To iterate on a skill or hook without publishing, load the repo directly — this bypasses
+the marketplace and picks up working-tree edits (run `/reload-plugins` after changes):
+
+```bash
+claude --plugin-dir /path/to/claude-toolbox
+```
+
+## Hooks
+
+`hooks/hooks.json` wires three hooks, resolved against `${CLAUDE_PLUGIN_ROOT}`:
+
+- `guard-skill-deletion.sh` — PreToolUse(Bash), blocks accidental skill deletion.
+- `symlink-worktree-local-config.sh` — SessionStart + PostToolUse(Bash), links local
+  config into git worktrees.
+
+> The two `.sh` files are currently **pass-through stubs** (they install cleanly but
+> don't do anything yet). Paste the real bodies from your main machine's
+> `~/.claude/hooks/`, commit, and bump the plugin version.
 
 ## Config templates
 
 `configs/settings.json` and `configs/known_marketplaces.json` are cleaned copies of
 `~/.claude/settings.json` and `~/.claude/plugins/known_marketplaces.json` — stripped of
-machine-specific junk (marketplace `installLocation`/`lastUpdated`, and personal/local-only
-tool hooks like peon-ping and agent-flow, same exclusion bar as skills above).
+machine-specific junk. Hooks are no longer templated here; they ship with the plugin.
 
 Not auto-installed — copy manually and reconcile:
-- `settings.json` hook paths use `$HOME` as a placeholder; the two referenced scripts
-  (`guard-skill-deletion.sh`, `symlink-worktree-local-config.sh`) must exist at
-  `~/.claude/hooks/` on the target machine — they aren't part of this repo.
-- `known_marketplaces.json` — Claude Code regenerates `installLocation`/`lastUpdated`
-  on next marketplace refresh; just needs `source` to re-add each marketplace.
+- `settings.json` — `statusLine`, `model`, `effortLevel`, and `enabledPlugins` are personal
+  defaults; merge what you want. This `toolbox` marketplace/plugin is added via the
+  `/plugin` commands above, not through this file.
+- `known_marketplaces.json` — the *external* marketplaces this setup consumes; Claude Code
+  regenerates `installLocation`/`lastUpdated` on next refresh, so only `source` matters.
 
 ## Personal CLAUDE.md template
 
@@ -72,7 +103,7 @@ Not auto-installed — copy manually and reconcile:
 collaboration style, code philosophy, git conventions, trade-off presentation, language
 rule. No employer/team/project content lives here.
 
-Not auto-installed (same reasoning as configs above — `~/.claude/CLAUDE.md` on a machine
-already set up for a job may carry company-specific context that shouldn't be clobbered):
-copy or merge it into `~/.claude/CLAUDE.md` by hand, then add company/project specifics on
-top of it.
+Not auto-installed (a plugin can't write your global `~/.claude/CLAUDE.md`, and that file
+on a machine already set up for a job may carry company-specific context that shouldn't be
+clobbered): copy or merge it into `~/.claude/CLAUDE.md` by hand, then add company/project
+specifics on top of it.
