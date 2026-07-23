@@ -30,6 +30,9 @@ skills/
   uniformity-check/    # check a diff for drift vs the codebase (per-stack baselines in stacks/)
   am-i-stuck/          # Shape Up hill-chart / "am I in the tunnel?" self-diagnostic
   what-did-we-learn/   # end-of-session capture of generalizable learnings into memory
+  plan/                # code-anchored implementation plan, bridging shaping decisions to build
+  pw-test/             # browser automation for visual testing and UI validation (playwright-cli)
+  mr-go/               # check a draft MR/PR is ready to flip to ready-for-review
 hooks/
   hooks.json           # SessionStart/PreToolUse/PostToolUse wiring (paths via ${CLAUDE_PLUGIN_ROOT})
   guard-skill-deletion.sh          # PreToolUse(Bash) — block accidental skill deletion
@@ -80,9 +83,9 @@ claude --plugin-dir /path/to/claude-toolbox
 - `symlink-worktree-local-config.sh` — SessionStart + PostToolUse(Bash), links local
   config into git worktrees.
 
-> The two `.sh` files are currently **pass-through stubs** (they install cleanly but
-> don't do anything yet). Paste the real bodies from your main machine's
-> `~/.claude/hooks/`, commit, and bump the plugin version.
+> `symlink-worktree-local-config.sh` is currently a **pass-through stub** (installs
+> cleanly, no-op). Paste the real body from your main machine's `~/.claude/hooks/`,
+> commit, and bump the plugin version. `guard-skill-deletion.sh` is live.
 
 ## Config templates
 
