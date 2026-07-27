@@ -26,6 +26,7 @@ skills/
   uniformity-check/    # check a diff for drift vs the codebase (per-stack baselines in stacks/)
   am-i-stuck/          # Shape Up hill-chart / "am I in the tunnel?" self-diagnostic
   what-did-we-learn/   # end-of-session capture of generalizable learnings into memory
+  is-it-down/          # check live status of gitlab/github/anthropic/etc via their status-page APIs
 install.sh             # symlink every skills/* into ~/.claude/skills (idempotent)
 CLAUDE.md               # portable personal working-style template (see below)
 ```
