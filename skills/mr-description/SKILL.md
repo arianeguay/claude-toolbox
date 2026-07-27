@@ -12,6 +12,7 @@ Generate or update a professional PR/MR title + description from the branch diff
 1. Gather context (branch, base, ticket, diff)
 2. **Check for an existing PR/MR** — fetch its current title + description
 3. Analyze the diff (intent, decisions, risks, UI?)
+3.5. **If UI changed:** capture real screenshots via Chrome DevTools MCP, upload, embed
 4. Generate or update title + description, **preserving existing content**
 5. Present to the user for approval
 6. Push (create or update)
@@ -59,6 +60,38 @@ Area touched (→ scope) · primary intent (feat/fix/refactor/…) · non-obviou
 
 ---
 
+## Step 3.5 — Capture real screenshots (when the diff touches UI)
+
+If the diff changes `*.tsx`/`*.jsx`/templates (a UI change), try to capture real screenshots instead of a placeholder — always prefer a real screenshot over `📸 TODO`.
+
+**Preconditions — all must hold, else skip to the placeholder/N/A fallback:**
+- Dev server reachable: `curl -s -o /dev/null -w '%{http_code}' http://localhost:3000 --max-time 3` returns `200` (adjust port per repo).
+- Chrome DevTools MCP tools are available (`ToolSearch` for `mcp__chrome-devtools__*`, or already loaded).
+- The repo has a known local-dev login (check memory for a reference like "local dev login" — username/password to authenticate the app before navigating).
+
+**Procedure:**
+1. **Log in** (if the app is behind auth): `new_page` to the app's login route, `fill` credentials, `click` submit, `take_snapshot` to confirm landing.
+2. **Navigate** to each route the diff actually affects (derive from the ticket/component names — e.g. a Forecast component change → the Forecast tab route).
+3. **Screenshot** each affected state with `take_screenshot(fullPage: true, filePath: ...)`. Chrome DevTools MCP enforces its own workspace-root restriction — save under a path inside the repo working tree (e.g. `.mr-screenshots/<name>.png`), **not** `/tmp` or an external scratchpad, or the write will be rejected.
+4. **Capture one screenshot per distinct scenario the ticket/diff describes** (e.g. each of N described bugs/states), not just one generic "it works" shot.
+5. **Upload each PNG to the host so it can be embedded in the description:**
+   - **GitLab:** upload via the project's uploads endpoint, then use the returned `markdown` field's URL directly in the description:
+     ```bash
+     TOKEN=$(glab config get token --host gitlab.com)
+     curl -s --request POST --header "PRIVATE-TOKEN: $TOKEN" \
+       --form "file=@.mr-screenshots/<name>.png" \
+       "https://gitlab.com/api/v4/projects/<url-encoded-namespace%2Frepo>/uploads"
+     # → {"markdown":"![name](/uploads/<hash>/name.png)", ...} — use the url/markdown field
+     ```
+     (`glab api --field file=@path` does NOT do a multipart upload — it JSON-encodes the value. Use `curl` with `--form` directly.)
+   - **GitHub:** no simple REST equivalent for arbitrary image upload into a PR body — don't attempt it. Fall back to `📸 TODO: add before merging` and note in the report that screenshots need manual attachment.
+6. **Embed** the returned image URLs in the Screenshots section (see Step 4's narrative-walkthrough rule for ≥3 images — one short paragraph of *why this scenario is shown* before each image, referencing the specific behavior it demonstrates).
+7. **Clean up:** delete the local `.mr-screenshots/` directory once uploaded (images now live on the host, not the repo). Before deleting, run `git status --porcelain` — if the files were staged by anything else, `git restore --staged` them first so the delete doesn't get bundled into an unrelated commit. Never commit screenshot files to the branch.
+
+**If any precondition fails** (server down, tool unavailable, no known login, diff is a pure refactor/backend/no visual surface): use the existing `📸 TODO: add before merging` or `N/A — no UI change` fallback — don't block the rest of the pipeline on this.
+
+---
+
 ## Step 4 — Generate or update
 
 **Title:** `<type>(<scope>): <Description>` — Conventional-Commits type, scope = area, imperative, capitalized. Ticket id goes in the body, not the title.
@@ -81,7 +114,7 @@ Area touched (→ scope) · primary intent (feat/fix/refactor/…) · non-obviou
 
 **Include:** the change↔problem link, real architecture decisions, risk flags, out-of-scope notes. **Skip:** per-file lists, obvious patterns, restating the ticket, boilerplate that doesn't apply.
 
-**Screenshots:** real images or `📸 TODO: add before merging`; for a pure refactor write `N/A — no UI change`. **When ≥3 screenshots, write a narrative walkthrough** grouped by scenario (a short paragraph explaining *why each scenario is shown* before each image), not an alt-text gallery.
+**Screenshots:** prefer real images captured per Step 3.5; fall back to `📸 TODO: add before merging` only if a precondition there fails; for a pure refactor write `N/A — no UI change`. **When ≥3 screenshots, write a narrative walkthrough** grouped by scenario (a short paragraph explaining *why each scenario is shown* before each image), not an alt-text gallery.
 
 ---
 
