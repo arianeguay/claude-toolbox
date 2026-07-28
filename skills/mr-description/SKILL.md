@@ -90,6 +90,15 @@ If the diff changes `*.tsx`/`*.jsx`/templates (a UI change), try to capture real
 
 **If any precondition fails** (server down, tool unavailable, no known login, diff is a pure refactor/backend/no visual surface): use the existing `📸 TODO: add before merging` or `N/A — no UI change` fallback — don't block the rest of the pipeline on this.
 
+**Multi-step flow → prefer video over a screenshot stack.** A static image can't show a before/after transition, an animation, or a multi-click sequence. If `playwright-cli` is installed (see `/pw-test` skill) and the diff is that kind of flow, record instead:
+```bash
+playwright-cli -s=<repo> video-start .mr-screenshots/demo.webm
+# drive the flow: goto / click / fill / etc.
+playwright-cli -s=<repo> video-chapter "Step label"   # optional markers per step
+playwright-cli -s=<repo> video-stop
+```
+Upload the same way as a screenshot (Step 3.5.5 above) — the GitLab uploads endpoint and the `curl --form` requirement are identical for any file type, not just PNG. Delete the local file after upload, same cleanup rule as screenshots. Single-state UI changes still get a plain screenshot — video is the upgrade for flows, not the new default.
+
 ---
 
 ## Step 4 — Generate or update
