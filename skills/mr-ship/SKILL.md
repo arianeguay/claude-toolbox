@@ -27,6 +27,22 @@ FILES=$(git diff "origin/$BASE...HEAD" --name-only | wc -l | tr -d ' ')
 ```
 Show: `Ship — {branch} → {BASE} ({FILES} files)`. Detect whether a PR/MR already exists (`gh pr view "$BRANCH"` / `glab mr view "$BRANCH"`).
 
+### Step 0.1 — Behind-base guard (BLOCKS — never skip)
+Every pipeline step diffs with three-dot (`origin/$BASE...HEAD`), which compares against the **merge-base** and so is *blind* to commits that landed on the base after you forked. If the branch is behind base, a later `git reset --soft origin/$BASE` (or a naive squash) silently re-parents a stale tree onto the new base and turns already-merged work into phantom **deletions** — invisible to every three-dot check in this pipeline.
+
+```bash
+BEHIND=$(git rev-list --count "HEAD..origin/$BASE")
+echo "Behind $BASE by: $BEHIND commit(s)"
+git merge-base --is-ancestor "origin/$BASE" HEAD && echo "up to date with base" || echo "BEHIND BASE"
+```
+If `BEHIND` > 0 → **STOP the pipeline.** The branch must be rebased before shipping:
+```bash
+git rebase "origin/$BASE"   # replays commits, surfaces conflicts/drops — unlike reset --soft, which absorbs them
+```
+Then re-run mr-ship from Step 0. Do **not** proceed while behind — and do **not** use `git reset --soft origin/$BASE` to squash a behind branch. As a final belt-and-suspenders before any push, confirm the **two-dot** diff has no files you didn't touch (two-dot shows base-advance deletions that three-dot hides): `git diff "origin/$BASE" HEAD --stat`.
+
+Prevention upstream of this skill: cut worktrees/branches from the fetched remote ref (`git fetch origin && git worktree add -b x ../wt origin/$BASE`), not from a possibly-stale local branch.
+
 ---
 
 ## Pipeline (in order)
