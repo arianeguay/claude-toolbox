@@ -30,6 +30,7 @@ skills/
   uniformity-check/    # check a diff for drift vs the codebase (per-stack baselines in stacks/)
   am-i-stuck/          # Shape Up hill-chart / "am I in the tunnel?" self-diagnostic
   what-did-we-learn/   # end-of-session capture of generalizable learnings into memory
+  issues-candidate/    # end-of-task sweep for follow-up work worth filing (trackers/ per host)
   is-it-down/          # check live status of gitlab/github/anthropic/etc via their status-page APIs
   plan/                # code-anchored implementation plan, bridging shaping decisions to build
   pw-test/             # browser automation for visual testing and UI validation (playwright-cli)
