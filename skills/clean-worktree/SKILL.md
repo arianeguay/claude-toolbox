@@ -59,6 +59,17 @@ A branch is a **merged candidate** when its `upstream:track` is `[gone]`. Cross-
 git -C "<worktree-path>" status --porcelain   # non-empty → DIRTY, exclude + warn
 ```
 
+**Squash-merge fallback (branches NOT `[gone]`).** `[gone]` only fires when the remote deletes the source branch on merge. A branch squash-merged with "delete branch on merge" OFF keeps a live remote and never flips to `[gone]`, so the check above skips it. Do NOT rely on `git branch --merged` or `git cherry` to catch these — squash collapses N commits into one new patch-id, so both report the branch as fully unmerged. Use a **tree-level** check instead: a non-`[gone]` branch is *also* a merged candidate when either holds —
+
+```bash
+# (a) branch tip content already fully in main (nothing the branch adds is missing):
+git diff origin/main..<branch> --quiet && echo MERGED   # empty diff → merged
+# (b) or the branch's squash commit is present in main's history (match by ticket id):
+git log origin/main --oneline --grep='STU-XXX' | head    # non-empty → merged
+```
+
+(a) can read DIFF when main has simply moved *ahead* of the merge — later commits re-touching the same files. In that case (b) is authoritative: if the squash commit is in `origin/main`, the branch is merged regardless of drift. Present these under the same preview group (label them "merged, remote not deleted") so the single confirmation covers them too.
+
 ### 3. Present the preview, then ask ONCE
 
 Show grouped lists with the last commit subject per branch so the user can sanity-check. Example shape:
@@ -98,9 +109,15 @@ git branch -D "backup/<name>"
 git worktree prune
 ```
 
+**After pruning dangling records, re-scan for orphaned branches.** `git worktree prune` removes the *worktree record* but never touches the branch it pointed at — that branch is now worktree-less and, if `[gone]`/merged, still needs its own `git branch -D`. Re-run the `[gone]` + squash-merge detection over remaining branches once pruning is done, and sweep any merged branch with no worktree:
+
+```bash
+git for-each-ref --format='%(refname:short) %(upstream:track)' refs/heads/   # any leftover [gone]?
+```
+
 ### 5. Report
 
-Print what was removed and what was skipped (and why). Re-run `git worktree list` to confirm.
+Print what was removed and what was skipped (and why). Re-run `git worktree list` **and** `git for-each-ref refs/heads/` to confirm — the first alone hides orphaned branches left by a pruned worktree.
 
 ## Common mistakes
 
@@ -112,6 +129,8 @@ Print what was removed and what was skipped (and why). Re-run `git worktree list
 | `git worktree remove --force` on dirty trees | Never. Exclude dirty worktrees and warn; the user decides manually. |
 | Deleting `gitbutler/workspace` or `backup/*` you didn't list | Hard guards. `gitbutler/*` is internal; only delete `backup/*` when shown in preview. |
 | Removing the current worktree / main checkout | Always exclude `git rev-parse --show-toplevel` and the first `git worktree list` entry. |
+| Confirming "clean" with `git worktree list` only | It hides branches orphaned by a pruned worktree. Also check `git for-each-ref refs/heads/` and sweep leftover `[gone]` branches. |
+| A stale worktree lock (dead session pid) blocks `remove` | `git worktree unlock <path>` first, then `remove`. Verify the pid is dead (`kill -0 <pid>`) before overriding a lock. |
 
 ## Notes
 
