@@ -1,0 +1,11 @@
+{
+  "name": "claude-toolbox",
+  "description": "Instance-agnostic Claude Code skills and hooks",
+  "plugins": [
+    {
+      "name": "toolbox",
+      "source": ".",
+      "description": "Instance-agnostic skills (git, PR/MR pipeline, review) plus worktree/skill-safety hooks"
+    }
+  ]
+}
