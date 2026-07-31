@@ -1,5 +1,8 @@
 {
   "name": "toolbox",
   "version": "2.0.0",
-  "description": "Instance-agnostic skills that are useful in any project, plus worktree/skill-safety hooks."
+  "description": "Instance-agnostic skills that are useful in any project, plus worktree/skill-safety hooks.",
+  "author": {
+    "name": "arianeguay"
+  }
 }

@@ -1,5 +1,8 @@
 {
   "name": "claude-toolbox",
+  "owner": {
+    "name": "arianeguay"
+  },
   "description": "Instance-agnostic Claude Code skills and hooks",
   "plugins": [
     {
