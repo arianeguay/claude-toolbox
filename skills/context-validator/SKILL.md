@@ -8,7 +8,7 @@ user-invocable: true
 
 Validate a change before review. **Automate everything possible, then hand the human a concrete action list — not a checklist to think about.**
 
-**For the human steps: be ultra-specific.** Not "test the calendar" but "open `/scheduling/ro`, click patient X, verify the tooltip shows the new field." Actionable, no ambiguity, no open-ended questions. (ADHD-friendly = nothing to interpret.)
+**For the human steps: be ultra-specific.** Not "test the orders page" but "open `/orders`, click an order with line items, verify the tooltip shows the new field." Every step must be executable without interpretation — no ambiguity, no open-ended questions, nothing left to the reader's judgment.
 
 This is the judgment-level pre-review pass. Pair it with `mechanical-checks` (objective violations) and `uniformity-check` / `smallest-footprint` (drift + size).
 
@@ -34,7 +34,7 @@ If empty → `✅ No changes` and exit.
 
 Compare what the diff *touches* against what the change was *supposed* to do. Find the intended scope in this priority order:
 
-1. **A shaping bundle**, if you use one — a local file keyed by the ticket id (e.g. `${CLAUDE_SHAPING_DIR:-$HOME/Documents/claude-shaping}/<TICKET>.md`). Use its "ship / don't-ship" scope sections; honour a `Reshape` section as the newer source of truth.
+1. **A shaping bundle**, if you use one — a local file keyed by the ticket id (`${SHAPING_DIR}/<TICKET>.md`, see `PROFILE.md`). Use its "ship / don't-ship" scope sections; honour a `Reshape` section as the newer source of truth.
 2. **The linked issue / PR / MR description** — `gh pr view --json body` or `glab mr view`, or the tracker issue if the branch encodes one (`[A-Z]+-[0-9]+`).
 3. **The branch name + commit messages**, as a last resort.
 
@@ -46,7 +46,7 @@ Compare what the diff *touches* against what the change was *supposed* to do. Fi
   Intent source: {bundle / PR body / issue / branch}
   Files in diff: 12 — in scope: 10
   ⚠️ 2 outside scope:
-    - src/.../PatientList.tsx — unrelated filter refactor
+    - src/.../OrderList.tsx — unrelated filter refactor
   → Recommendation: revert these, file a separate task
 ```
 Or: `✅ All changes within scope`.
@@ -82,11 +82,11 @@ Run the automated analyses first and report findings inline — they *replace* q
 
 ```
 ── Things you need to do (I can't check these) ──────────
-1. OPEN localhost:3000/scheduling/ro/patient/<patient with a care plan>
-   → CLICK the Activities tab
-   → VERIFY activities show with correct dates (not UTC-shifted)
-2. OPEN the same page with a MedOnc patient
-   → VERIFY the Activities tab is NOT visible (RO-only)
+1. OPEN localhost:3000/orders/<an order with line items>
+   → CLICK the Activity tab
+   → VERIFY entries show with correct dates (not UTC-shifted)
+2. OPEN the same page as a read-only role
+   → VERIFY the Activity tab is NOT visible (admin-only)
 That's it — 2 things.
 ```
 **Rules:** max 5 items · each starts with a verb (OPEN/CLICK/TYPE/VERIFY/RESIZE) · each names the exact page/component + what to check · never "does it look right?" · if a test or an automated analysis already covers it, don't ask. If nothing is human-only: `✅ None needed — all verifiable paths covered automatically.`

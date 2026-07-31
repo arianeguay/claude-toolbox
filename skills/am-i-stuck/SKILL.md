@@ -1,213 +1,196 @@
 ---
 name: am-i-stuck
-description: Check volontaire en cours de building pour détecter si l'utilisatrice est dans le tunnel ou a perdu sa position sur le hill chart. Utiliser quand elle demande "am I stuck", "je suis où là", "hill check", "je tourne en rond", "ça fait longtemps que je suis sur ça". Aussi appelable quand elle dit "fak je pense que je suis dans le tunnel". Produit un diagnostic rapide et une recommandation d'action concrète (continuer, downscope, pause, reshape, demander de l'aide). 5 min max. NE PAS utiliser en Desktop (c'est un outil de building).
+description: Deliberate in-flight check to detect whether you're in the tunnel or have lost your position on the hill chart. Use when the user asks "am I stuck", "where am I at", "hill check", "I'm going in circles", "I've been on this a long time", or says they think they're in the tunnel. Produces a fast diagnostic and one concrete recommended action (continue, downscope, pause, reshape, ask for help). 5 min max. Do NOT use as a shaping tool — this is a building tool.
+user-invocable: true
 ---
 
-# Am I Stuck — Détection in-flight
+# Am I Stuck — in-flight detection
 
-Check **volontaire** en cours de building. Pas un watchdog automatique qui interrompt le flow — un outil que l'utilisatrice invoque quand elle sent qu'elle tourne en rond ou qu'elle n'est plus sûre d'où elle en est.
+A **deliberate** check during building. Not an automatic watchdog that interrupts flow — a tool the user invokes when they sense they're going in circles or are no longer sure where they stand.
 
-**Principe** : l'hyperfocus AuDHD rend très difficile de distinguer "je cherche encore" vs "j'exécute". Ce skill externalise cette distinction avec des questions concrètes et produit une recommandation d'action.
+**Principle:** deep focus makes it very hard to tell "still searching" from "executing" from the inside. This skill externalises that distinction with concrete questions and produces one recommended action.
 
-**Scope** : c'est un outil de **diagnostic + action**, pas de "recadrage émotionnel". Si l'utilisatrice est en détresse, ce n'est pas ce skill qui aide — c'est une pause.
+**Scope:** a **diagnostic + action** tool, not emotional reframing. If the user is in distress, this skill isn't what helps — a break is.
 
-## Quand utiliser
+## When to use
 
-Activation explicite via :
+Explicit invocation:
 - "am I stuck"
 - "hill check"
-- "je suis où là"
-- "je tourne en rond"
-- "ça fait longtemps que je suis sur ça"
-- "fak je pense que je suis dans le tunnel"
+- "where am I at"
+- "I'm going in circles"
+- "I've been on this forever"
+- "I think I'm in the tunnel"
 
-Également approprié quand l'utilisatrice fait un commentaire de frustration ("pourquoi ça marche pas", "j'ai tout essayé") — proposer alors :
-> "Check rapide avec `am-i-stuck` avant de continuer ? Ça prend 3-5 min."
+Also appropriate when the user makes a frustration remark ("why doesn't this work", "I've tried everything") — then offer:
+> "Quick check with `am-i-stuck` before continuing? Takes 3-5 min."
 
-Ne **pas** se déclencher automatiquement sur un timer. L'utilisatrice invoque quand elle en a besoin.
+Do **not** fire automatically on a timer. The user invokes it when they need it.
 
 ## Flow
 
-### Étape 1 — Collecter la position (4 questions)
+### Step 1 — Collect the position (4 questions)
 
-Poser **exactement 4 questions** via `ask_user_input_v0`. Pas plus. La valeur du skill c'est la brièveté.
+Ask **exactly 4 questions** via `AskUserQuestion`. No more. The brevity is the value.
 
 **Question 1 — Hill chart**
 
-> "Tu es où sur le hill chart pour ce ticket ?"
-> Options :
-> - "Uphill — je cherche encore la solution"
-> - "Juste en haut de la colline — j'ai une idée mais pas validée"
-> - "Downhill — je sais quoi faire, j'exécute"
-> - "Je sais plus où je suis"
+> "Where are you on the hill chart for this ticket?"
+> - "Uphill — still looking for the solution"
+> - "Just over the crest — I have an idea but it's unvalidated"
+> - "Downhill — I know what to do, I'm executing"
+> - "I don't know where I am anymore"
 
-**Question 2 — Temps investi**
+**Question 2 — Time invested**
 
-> "Depuis combien de temps t'es sur cette session de travail ?"
-> Options :
+> "How long have you been in this work session?"
 > - "< 1h"
 > - "1-2h"
 > - "2-4h"
-> - "Plus de 4h cumulées aujourd'hui"
+> - "More than 4h cumulative today"
 
-**Question 3 — Signal interne**
+**Question 3 — Internal signal**
 
-> "Comment tu te sens par rapport au progrès ?"
-> Options :
-> - "Je progresse, c'est juste long"
-> - "Je tourne en rond, j'essaie la même chose sous différents angles"
-> - "Je saute d'un fil à l'autre, chaque fil semble prometteur"
-> - "Je suis à court d'idées, je ne sais plus quoi essayer"
+> "How does the progress feel?"
+> - "Making progress, it's just long"
+> - "Going in circles, trying the same thing from different angles"
+> - "Jumping between threads, each one looks promising"
+> - "Out of ideas, I don't know what to try next"
 
-**Question 4 — Scope check (anti hyperfocus drift)**
+**Question 4 — Scope check**
 
-> "Ce sur quoi tu travailles **maintenant**, c'est exactement ce que le ticket demande, ou ça a élargi ?"
-> Options :
-> - "Pareil que le ticket, scope intact"
-> - "J'ai ajouté un ou deux trucs adjacents qui me semblaient pertinents"
-> - "Je suis dans un sous-problème que j'ai découvert en chemin"
-> - "Honnêtement je sais plus si c'est dans le scope original"
+> "What you're working on **right now** — is it exactly what the ticket asks, or has it widened?"
+> - "Same as the ticket, scope intact"
+> - "I added one or two adjacent things that seemed relevant"
+> - "I'm in a sub-problem I discovered along the way"
+> - "Honestly I'm not sure it's still in the original scope"
 
-Cette question externalise la dérive de scope que l'hyperfocus AuDHD rend invisible. Une réponse autre que la première est un signal — pas forcément un problème, mais à diagnostiquer.
+This question externalises the scope drift that deep focus makes invisible from the inside. Anything but the first answer is a signal — not necessarily a problem, but worth diagnosing.
 
-### Étape 2 — Diagnostic
+### Step 2 — Diagnose
 
-Croiser les 3 réponses pour produire un diagnostic. Voici la matrice des patterns principaux :
+Cross the answers to produce a diagnostic. The main patterns:
 
-**Pattern 1 — Progrès normal**
-- Hill: Uphill ou Downhill
-- Temps: < 2h
-- Signal: "Je progresse"
-→ Diagnostic : "Tu n'es pas stuck. Continue."
+**Pattern 1 — Normal progress**
+- Hill: uphill or downhill · Time: < 2h · Signal: making progress
+→ "You're not stuck. Keep going."
 
-**Pattern 2 — Uphill prolongé (classique hyperfocus)**
-- Hill: Uphill
-- Temps: > 2h
-- Signal: "Je tourne en rond" ou "Je saute d'un fil à l'autre"
-→ Diagnostic : "Tu es dans le tunnel uphill. Signal classique : tu crois chercher la solution, tu explores des impasses en cercle. Coût d'opportunité élevé."
+**Pattern 2 — Prolonged uphill**
+- Hill: uphill · Time: > 2h · Signal: circles, or thread-jumping
+→ "You're in the uphill tunnel. Classic signal: it feels like searching for the solution, but you're exploring dead ends in a loop. High opportunity cost."
 
-**Pattern 3 — Faux downhill**
-- Hill: Downhill
-- Temps: > 2h
-- Signal: "Je tourne en rond"
-→ Diagnostic : "Tu te penses downhill mais tu tournes en rond. Signal que tu étais en fait encore uphill — la solution que tu pensais avoir ne tient pas. Retour en vrai uphill nécessaire."
+**Pattern 3 — False downhill**
+- Hill: downhill · Time: > 2h · Signal: circles
+→ "You think you're downhill but you're going in circles. That means you were still uphill — the solution you thought you had doesn't hold. You need to go back to real uphill."
 
-**Pattern 4 — Désorientation**
-- Hill: "Je sais plus où je suis"
-- Temps: peu importe
-- Signal: peu importe
-→ Diagnostic : "Tu as perdu le fil du ticket. Besoin de re-ancrer dans le scope avant d'avancer."
+**Pattern 4 — Disorientation**
+- Hill: "don't know where I am" · Time: any · Signal: any
+→ "You've lost the thread of the ticket. You need to re-anchor in the scope before moving forward."
 
-**Pattern 5 — Épuisement**
-- Hill: peu importe
-- Temps: > 4h
-- Signal: "À court d'idées" ou "Je saute d'un fil à l'autre"
-→ Diagnostic : "Fatigue cognitive probable. Les heuristiques internes ne répondent plus. Pause non-négociable avant décision."
+**Pattern 5 — Depletion**
+- Hill: any · Time: > 4h · Signal: out of ideas, or thread-jumping
+→ "Likely cognitive fatigue. The internal heuristics have stopped responding. Non-negotiable break before any decision."
 
-**Pattern 6 — Blocage externe**
-- Hill: Uphill
-- Temps: > 1h
-- Signal: "À court d'idées"
-→ Diagnostic : "Possible blocage par manque d'info externe. Une question à une personne ou une doc à lire pourrait débloquer plus vite que continuer seul."
+**Pattern 6 — External block**
+- Hill: uphill · Time: > 1h · Signal: out of ideas
+→ "Possibly blocked on missing external information. One question to a person, or one doc, could unblock this faster than continuing alone."
 
-**Pattern 7 — Scope creep silencieux (hyperfocus drift)**
-- Scope (Q4): "ajouté trucs adjacents", "sous-problème découvert", ou "sais plus si dans le scope"
-- Hill et Temps : peu importe
-→ Diagnostic : "Tu travailles sur quelque chose qui a glissé hors du ticket. C'est le pattern hyperfocus classique : chaque branche semble pertinente, mais la somme dépasse le scope. Coût : le ticket original ne ship pas pendant que tu construis l'adjacence."
+**Pattern 7 — Silent scope creep**
+- Scope (Q4): adjacent things added, sub-problem discovered, or unsure
+- Hill and time: any
+→ "You're working on something that has slid outside the ticket. Each branch seems relevant, but the sum exceeds the scope. Cost: the original ticket doesn't ship while you build the adjacency."
 
-Ce pattern domine les autres quand il est détecté — un faux-downhill ou un uphill prolongé sur du code hors-scope est une dérive, pas un blocage.
+This pattern **dominates the others** when detected — a false-downhill or a prolonged uphill on out-of-scope code is drift, not a block.
 
-### Étape 3 — Recommandation d'action (1 seule, concrète)
+### Step 3 — One recommendation, concrete
 
-Proposer **une seule** action concrète adaptée au pattern :
+Give **exactly one** concrete action, matched to the pattern:
 
-**Pattern 1 — Progrès normal**
-> "Continue. Pas besoin d'intervention. Re-check dans ~1h si tu veux."
+**Pattern 1**
+> "Keep going. No intervention needed. Re-check in ~1h if you want."
 
-**Pattern 2 — Uphill prolongé**
-> "Recommandation : downscope avant de continuer.
+**Pattern 2 — Prolonged uphill**
+> "Recommendation: downscope before continuing.
 >
-> Concrètement : prends 2 min pour écrire ce que tu cherches à faire actuellement. Si c'est plus ambitieux que le scope du bundle initial, coupe la partie ambitieuse maintenant. Si c'est dans le scope, alors le rabbit hole est réel et mérite soit un spike de 30 min max, soit un retour en Desktop pour reshape."
+> Concretely: take 2 min to write down what you're currently trying to do. If it's more ambitious than the original scope, cut the ambitious part now. If it's inside scope, the rabbit hole is real and deserves either a 30-min spike, max, or a return to shaping."
 
-**Pattern 3 — Faux downhill**
-> "Recommandation : retour en uphill explicite.
+**Pattern 3 — False downhill**
+> "Recommendation: go back to explicit uphill.
 >
-> Concrètement : laisse tomber la solution actuelle qui ne tient pas. Reviens en mode exploration (brainstorm ou sketch) avant de re-écrire du code. Te forcer à re-écrire va juste produire plus de code qui ne tient pas."
+> Concretely: drop the current solution, it doesn't hold. Return to exploration (brainstorm or sketch) before writing more code. Forcing a rewrite now just produces more code that doesn't hold."
 
-**Pattern 4 — Désorientation**
-> "Recommandation : re-lire le bundle shaping.
+**Pattern 4 — Disorientation**
+> "Recommendation: re-read the shaping bundle.
 >
-> Concrètement : ouvre le bundle original (ou le ticket Linear si pas de bundle). Relis le 'Ce qu'on ship' et le 'Premier pas'. Identifie un pas concret qui est dans le scope. Fais-le. Si tu ne peux pas identifier un pas concret, c'est un signal pour `ticket-shape` en mode 'bloquée' (retour Desktop)."
+> Concretely: open the original bundle (or the ticket if there's no bundle). Re-read what ships and what the first step was. Identify one concrete step that's inside scope. Do it. If you can't identify one, that's the signal to go back to shaping."
 
-**Pattern 5 — Épuisement**
-> "Recommandation : pause non-négociable.
+**Pattern 5 — Depletion**
+> "Recommendation: non-negotiable break.
 >
-> Concrètement : ferme Claude Code. Lève-toi, bois de l'eau, sors de l'écran 20 min minimum. Aucune décision technique ni de scope d'ici là. Si à ton retour tu es toujours épuisée, la session est finie pour aujourd'hui — le ticket attendra."
+> Concretely: close the editor. Stand up, drink water, get off the screen for 20 min minimum. No technical or scope decisions until then. If you're still depleted when you come back, the session is done for today — the ticket will wait."
 
-**Pattern 6 — Blocage externe**
-> "Recommandation : identifier ce qui débloque.
+**Pattern 6 — External block**
+> "Recommendation: identify what unblocks you.
 >
-> Concrètement : pose-toi la question 'qu'est-ce que j'aurais besoin de savoir pour avancer ?' En 2 min, écris une phrase précise. Si la réponse est dans la codebase, va la chercher. Si la réponse est chez quelqu'un, envoie le message maintenant (même Slack async) et commence autre chose pendant que tu attends."
+> Concretely: ask yourself 'what would I need to know to move forward?' Write one precise sentence, in 2 min. If the answer is in the codebase, go get it. If it's in someone's head, send the message now (async is fine) and start something else while you wait."
 
-**Pattern 7 — Scope creep silencieux**
-> "Recommandation : couper le scope hors-ticket maintenant.
+**Pattern 7 — Silent scope creep**
+> "Recommendation: cut the out-of-ticket scope now.
 >
-> Concrètement : nomme en une phrase ce qui a été ajouté ou découvert hors du scope original. Trois options : (a) c'est pas critique → drop, garde les changements pour plus tard ou jette, (b) c'est un vrai sous-ticket → stash le code, ouvre un ticket Linear via `linear-issue-creator`, retourne au scope initial, (c) c'est en fait dans le scope mais pas reconnu au shaping → retour Desktop pour reshape via `ticket-shape`. Choisir maintenant, pas dans 30 min."
+> Concretely: name in one sentence what got added or discovered outside the original scope. Three options: (a) not critical → drop it, stash or discard the changes; (b) a real sub-ticket → stash the code, file the ticket, return to the original scope; (c) actually in scope but unrecognised at shaping → go back and reshape. Choose now, not in 30 minutes."
 
-### Étape 4 — Proposer le follow-up
+### Step 4 — Offer the follow-up
 
-Après la recommandation, demander :
+After the recommendation, ask:
 
-> "Tu veux que je t'aide à exécuter cette action, ou tu prends ça de là ?"
-> - "Aide-moi avec [l'action]"
-> - "Je prends de là"
-> - "En fait je veux retourner en Desktop pour reshape via `ticket-shape`"
+> "Want me to help execute that, or do you take it from here?"
+> - "Help me with [the action]"
+> - "I'll take it from here"
+> - "Actually I want to go back and reshape"
 
-Si "aide-moi" : exécuter l'action avec l'utilisatrice (downscope, relecture du bundle, rédaction du message async, etc.).
-Si "je prends de là" : laisser faire, ne pas re-checker sans invocation.
-Si "retour Desktop" : nommer le bridge : "OK, ouvre Claude Desktop et dis `je suis bloquée sur GRA-XXXX`, ça va déclencher le mode bloquée de `ticket-shape`."
+Help → execute the action with the user (downscope, re-read the bundle, draft the async message).
+Take it from here → step back, don't re-check without being invoked.
+Reshape → name the bridge explicitly: which tool/context they should switch to, and what to say when they get there.
 
-### Étape 5 — Noter le pattern pour retrospect
+### Step 5 — Note the pattern for the retrospective
 
-Si l'utilisatrice a rencontré un pattern 2, 3, 5 ou 6 sur ce ticket, noter mentalement pour que, quand `ticket-retrospect` sera fait après le ship, cette info soit disponible. Format :
+If the user hit pattern 2, 3, 5 or 6 on this ticket, record it so a later retrospective can use it:
 
 ```
-Note pour retrospect de GRA-XXXX:
-- Session stuck à [timestamp/durée]
-- Pattern: [nom du pattern]
-- Action prise: [ce qu'on a fait]
-- Résolu: [oui/non/à vérifier après]
+Retrospective note for <TICKET>:
+- Stuck at [timestamp/duration]
+- Pattern: [name]
+- Action taken: [what was done]
+- Resolved: [yes/no/check later]
 ```
 
-Cette note alimente le retrospect et révèle les patterns récurrents.
+This feeds the retrospective and surfaces recurring patterns.
 
-## Règles strictes
+## Hard rules
 
-**Durée max : 5 min.** Si le diagnostic prend plus de temps, c'est qu'il manque de l'info claire — clôturer avec "pas de diagnostic clair, retour en Desktop pour reshape via `ticket-shape`".
+**5 min max.** If the diagnostic takes longer, the information isn't clear enough — close with "no clear diagnostic, go back to shaping."
 
-**Une seule recommandation.** Pas de menu de 3 options d'action. AuDHD + dans le tunnel = décision minimale requise. Un choix, clair.
+**One recommendation.** No menu of three options. In the tunnel = minimal decision load. One choice, clear.
 
-**Pas de jugement.** Ne jamais dire "tu aurais dû t'arrêter plus tôt" ou "tu devrais connaître ce pattern". Le fait qu'elle invoque le skill est déjà la bonne action. Point.
+**No judgment.** Never say "you should have stopped earlier" or "you should know this pattern by now." Invoking the skill was already the right move. Full stop.
 
-**Ne pas forcer une action.** Si elle veut ignorer la recommandation et continuer, c'est son droit. Noter qu'on a fait le check et passer.
+**Don't force the action.** If the user wants to ignore the recommendation and continue, that's their call. Note that the check happened and move on.
 
-## Ne pas faire
+## Don't
 
-- Ne pas se déclencher automatiquement sur un timer
-- Ne pas poser > 3 questions
-- Ne pas proposer plusieurs actions
-- Ne pas juger la situation
-- Ne pas moraliser sur l'hygiène de travail
-- Ne pas faire de discours sur la fatigue cognitive
-- Ne pas tenter de reshape depuis Claude Code — toujours rediriger vers Desktop si reshape nécessaire
-- Ne pas oublier de noter le pattern pour retrospect
+- Don't fire automatically on a timer
+- Don't ask more than the 4 questions
+- Don't offer multiple actions
+- Don't judge the situation
+- Don't moralise about work hygiene
+- Don't lecture about cognitive fatigue
+- Don't attempt to reshape from inside the build context — redirect instead
+- Don't forget to note the pattern for the retrospective
 
-## Format de sortie
+## Output format
 
-- Français québécois, registre oral OK
-- Pas d'emojis
-- Diagnostic en 1-2 phrases max
-- Recommandation en format "Recommandation: X. Concrètement: [étapes précises]"
-- Ne pas commencer une phrase par son prénom
-- Pas de pep talk, pas de "tu vas y arriver", pas de "reste forte"
-- Factuel et court
+- No emoji
+- Diagnostic in 1-2 sentences max
+- Recommendation as "Recommendation: X. Concretely: [precise steps]"
+- No pep talk, no "you've got this", no encouragement filler
+- Factual and short

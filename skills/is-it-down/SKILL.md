@@ -47,7 +47,7 @@ This table is a starting point, not exhaustive — for a service not listed, try
 
 ### 1. Parse the arg(s)
 
-One or more service names, case-insensitive. No arg → default to `gitlab github anthropic` (the services this user actually depends on day to day — GitLab hosts noether/nabla MRs, GitHub is personal-repo/claude-toolbox, Anthropic is Claude itself).
+One or more service names, case-insensitive. No arg → default to `gitlab github anthropic` (code host, code host, and Claude itself — the ones most likely to break a session). Override the default set in `PROFILE.md` if your stack differs.
 
 ### 2. Statuspage services (github, anthropic, openai, npm, cloudflare, vercel, docker, figma, notion, linear)
 

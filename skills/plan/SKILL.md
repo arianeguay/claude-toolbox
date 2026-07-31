@@ -1,90 +1,92 @@
 ---
 name: plan
-description: Produire un plan d'implémentation ancré dans le vrai code — le pont manquant entre le shaping (décisions/rationales/rabbit holes) et le build. Utiliser en Claude Code juste avant de coder, quand l'utilisatrice dit "fais-moi un plan", "plan pour GRA-XXXX", "on planifie avant de coder", "avant de commencer", ou après `ticket-unbundle` quand le contexte de shaping est prêt mais qu'il manque un plan concret. Consomme le contexte déjà unbundlé s'il est présent (chemin principal), sinon prend un ticket GRA-XXXX ou une description brute et lit le code elle-même (fallback pour les tickets TRIVIAL qui skippent le shaping). Sort une liste ordonnée de changements avec les fichiers touchés, persistée dans `.plans/GRA-XXXX.md`. NE PAS utiliser pour shaper (ça, c'est `ticket-shape` en Desktop) ni pour décider du scope — ici on décide le COMMENT, pas le QUOI.
+description: Produce an implementation plan anchored in the real code — the missing bridge between shaping (decisions/rationales/rabbit holes) and the build. Use just before writing code, when the user says "make me a plan", "plan for <TICKET>", "let's plan before coding", "before we start", or after a shaping/unbundle step when the context is ready but a concrete plan is missing. Consumes existing shaping context when present, otherwise takes a ticket id or a raw description and reads the code itself. Outputs an ordered list of changes with the files each one touches, persisted to `.plans/<TICKET>.md`. Do NOT use for shaping or for deciding scope — this decides the HOW, not the WHAT.
+user-invocable: true
 ---
 
-# Plan — Pont Shaping → Build
+# Plan — Shaping → Build bridge
 
-Dernier maillon avant de coder. Le shaping décide **quoi** ship et dans **quel ordre** ; ce skill décide **comment**, ancré dans le vrai code.
+The last link before writing code. Shaping decides **what** to ship and in **what order**; this skill decides **how**, anchored in the real code.
 
-**Principe** : le bundle de shaping donne les décisions et leurs rationales, mais pas un plan d'implémentation validé contre la codebase. Ce skill comble ce trou — il lit le code réel pour confirmer ce qui existe (réutiliser vs construire), où le changement s'insère, quel pattern suivre, puis sort une liste ordonnée de changements. C'est le "comment" concret que brainstorm/plan génériques ne pouvaient pas ancrer.
+**Principle:** a shaping bundle gives decisions and their rationales, but not an implementation plan validated against the codebase. This skill fills that gap — it reads the real code to confirm what already exists (reuse vs build), where the change plugs in, which pattern to follow, then outputs an ordered list of changes.
 
-**Ce que ce skill n'est PAS** : pas des phases lourdes avec critère de vérif par étape façon superpowers. Une liste ordonnée, chaque item nomme les fichiers touchés. Cohérent avec `smallest-footprint` : le plan le plus léger qui laisse coder sans re-deviner.
+**What this skill is NOT:** not heavy phases with a verification criterion per step. An ordered list, each item naming the files it touches. Consistent with `smallest-footprint`: the lightest plan that lets you code without re-guessing.
 
-## Détection du chemin d'entrée (Étape 0)
+## Step 0 — Detect the entry path
 
-Auto-détecter, ne pas demander à l'utilisatrice de choisir.
+Auto-detect. Don't make the user choose.
 
-**Option A — contexte de shaping déjà présent (chemin principal)** : les décisions, rationales et rabbit holes du ticket sont déjà dans la conversation (`ticket-unbundle` a tourné cette session, ou l'utilisatrice a collé/résumé le shaping). Les réutiliser tels quels — ne pas re-demander, ne pas relire le bundle sur disque si le contexte est déjà là.
+**Option A — shaping context already present (main path):** the ticket's decisions, rationales and rabbit holes are already in the conversation (an unbundle step ran this session, or the user pasted/summarised the shaping). Reuse them as-is — don't re-ask, don't re-read the bundle from disk when the context is already there.
 
-Si rien n'est en contexte, chercher un bundle persisté avant de tomber en fallback. Extraire le ticket ID :
+If nothing is in context, look for a persisted bundle before falling back. Extract the ticket id:
 ```bash
-TICKET_ID=$(git branch --show-current | grep -oiE 'GRA-[0-9]+' | tr '[:lower:]' '[:upper:]')
-BUNDLE="/Users/arianeguay/dev/src/claude-shaping/${TICKET_ID}.md"
-[ -f "$BUNDLE" ] && cat "$BUNDLE"
+# TICKET_PREFIX and SHAPING_DIR come from PROFILE.md
+TICKET_ID=$(git branch --show-current | grep -oiE "${TICKET_PREFIX:-[A-Z]{2,}}-[0-9]+" | tr '[:lower:]' '[:upper:]')
+BUNDLE="${SHAPING_DIR}/${TICKET_ID}.md"
+[ -n "$SHAPING_DIR" ] && [ -f "$BUNDLE" ] && cat "$BUNDLE"
 ```
-Fichier trouvé → l'ingérer comme contexte Option A.
+File found → ingest it as Option A context.
 
-**Fallback — pas de contexte de shaping** : couvre les tickets TRIVIAL qui skippent le shaping. Prendre l'entrée disponible :
-- Un GRA-XXXX (branche ou message) → lire le ticket Linear via MCP pour le titre + la description.
-- Une description brute collée → travailler à partir de ça.
+**Fallback — no shaping context:** covers trivial tickets that skip shaping. Take whatever input is available:
+- A ticket id (from the branch or the message) → read the ticket from the tracker for its title and description.
+- A pasted raw description → work from that.
 
-Le fallback lit le code lui-même sans bénéficier des rationales de shaping. Ne pas re-shaper (pas de découpage de scope, pas de rabbit holes) — juste planifier le comment du travail tel que décrit.
+The fallback reads the code itself without the benefit of shaping rationales. Don't re-shape (no scope splitting, no rabbit holes) — just plan the how of the work as described.
 
-Nommer le chemin retenu en une ligne : `Chemin: Option A (contexte shaping)` ou `Chemin: fallback (ticket TRIVIAL)`.
+Name the path taken in one line: `Path: Option A (shaping context)` or `Path: fallback (trivial ticket)`.
 
-## Ancrer le plan dans le code (Étape 1)
+## Step 1 — Anchor the plan in the code
 
-C'est la valeur du skill — ne pas la sauter. Avant d'écrire une seule ligne du plan, lire le code réel pour valider chaque hypothèse d'implémentation :
+This is the value of the skill — don't skip it. Before writing a single line of the plan, read the real code to validate every implementation assumption:
 
-- **Réutiliser vs construire** : le composant/util/hook/endpoint dont on a besoin existe-t-il déjà ? Grep avant de supposer qu'il faut le créer (`DisplayMap`, un util `.utils.ts`, un selector, un endpoint nabla). Réutiliser bat réinventer — `mr-uniformity-check` le flaggerait sinon.
-- **Point d'insertion** : où le changement se branche-t-il ? Lire le fichier cible, repérer la fonction/composant exact et le pattern voisin à suivre.
-- **Couplage implicite** : y a-t-il un jumeau à garder en phase (deux fonctions synchronisées, i18n 3 locales, un selector qui doit re-projeter dans le scope) ?
-- **Contredit le shaping ?** : si le code contredit une décision du bundle (un pattern assumé n'existe pas, un endpoint manque), le nommer explicitement — c'est le seul cas où on remonte au shaping. Ne pas patcher silencieusement.
+- **Reuse vs build:** does the component/util/hook/endpoint you need already exist? Grep before assuming you have to create it. Reuse beats reinvention — `uniformity-check` would flag it otherwise.
+- **Insertion point:** where does the change plug in? Read the target file, find the exact function/component and the neighbouring pattern to follow.
+- **Implicit coupling:** is there a twin to keep in sync (two functions that mirror each other, i18n across every locale, a selector that has to re-project into scope)?
+- **Contradicts the shaping?** If the code contradicts a decision from the bundle (an assumed pattern doesn't exist, an endpoint is missing), name it explicitly — this is the one case where you go back to shaping. Don't silently patch around it.
 
-Chaque item du plan doit tracer vers du code lu, pas deviné. Si une hypothèse n'a pas pu être vérifiée, la marquer `(non vérifié)` plutôt que de l'affirmer.
+Every plan item must trace to code you read, not code you guessed. If an assumption couldn't be verified, mark it `(unverified)` rather than asserting it.
 
-## Produire le plan (Étape 2)
+## Step 2 — Produce the plan
 
-Liste ordonnée. Chaque item : ce qui change, le(s) fichier(s), et la note réutilise-vs-nouveau quand c'est pertinent. Léger.
+Ordered list. Each item: what changes, the file(s), and a reuse-vs-new note where relevant. Keep it light.
 
 ```markdown
-# Plan — GRA-XXXX : [titre]
+# Plan — <TICKET>: [title]
 
-Chemin: [Option A (contexte shaping) | fallback (TRIVIAL)]
-Scope: [une phrase — ce qu'on ship]
+Path: [Option A (shaping context) | fallback (trivial)]
+Scope: [one sentence — what ships]
 
-## Changements
+## Changes
 
-1. [Action concrète] — `chemin/fichier.tsx`
-   [1 clause de contexte si non évident : réutilise `X`, suit le pattern de `Y`, ou nouveau]
-2. [Action] — `chemin/autre.ts`
+1. [Concrete action] — `path/file.tsx`
+   [1 clause of context if non-obvious: reuses `X`, follows the `Y` pattern, or new]
+2. [Action] — `path/other.ts`
 3. ...
 
-## Notes d'ancrage
-- Réutilisé: [utils/composants existants trouvés]
-- Nouveau: [ce qui n'existe pas et doit être créé]
-- Non vérifié / hypothèses: [ou "aucune"]
-- i18n: [clés à ajouter dans les 3 locales, ou "aucune"]
+## Anchoring notes
+- Reused: [existing utils/components found]
+- New: [what doesn't exist and must be created]
+- Unverified / assumptions: [or "none"]
+- i18n: [keys to add across locales, or "none"]
 ```
 
-Pas de critère de vérif par étape, pas de phases nommées. L'ordre des items EST le fil du build. Grouper les changements comme ils seront commités (un item ≈ un commit logique quand ça tombe bien).
+No per-step verification criteria, no named phases. The order of the items **is** the build thread. Group changes the way they'll be committed (one item ≈ one logical commit where it falls out that way).
 
-Rester dans le scope shapé. Ne pas ajouter d'items "tant qu'on y est" — chaque ligne trace vers ce qui a été demandé.
+Stay inside the shaped scope. Don't add "while we're in there" items — every line traces to what was asked.
 
-## Persister (Étape 3)
+## Step 3 — Persist
 
-Écrire le plan sur disque à la racine du worktree :
+Write the plan to disk at the worktree root:
 ```bash
 mkdir -p .plans
-# écrire dans .plans/${TICKET_ID}.md
+# write to .plans/${TICKET_ID}.md
 ```
-Si pas de ticket ID (fallback sur description brute), utiliser un slug court : `.plans/<slug>.md`.
+No ticket id (raw-description fallback) → use a short slug: `.plans/<slug>.md`.
 
-Survit à la session, retrouvable par `ticket-retrospect` pour comparer plan vs réalité.
+Survives the session, and a retrospective can find it to compare plan vs reality.
 
-## Passer au build (Étape 4)
+## Step 4 — Move to the build
 
-Le plan est le guide de build. Confirmer visuellement à l'utilisatrice le plan produit, puis l'exécuter de haut en bas : coder chaque item, commit par changement logique (voir `/commit`), lint + type-check + tests en cours de route (autonomie — ne pas demander la permission).
+The plan is the build guide. Show the user the plan, then execute it top to bottom: code each item, commit per logical change, lint + type-check + tests along the way — autonomously, without asking permission.
 
-Si un item se révèle faux en cours de build (le code ne matche pas le plan), corriger le plan en même temps que le code — ne pas laisser `.plans/GRA-XXXX.md` diverger de la réalité.
+If an item turns out to be wrong mid-build (the code doesn't match the plan), fix the plan alongside the code — don't let `.plans/<TICKET>.md` drift from reality.

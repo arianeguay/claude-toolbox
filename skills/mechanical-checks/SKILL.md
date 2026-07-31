@@ -62,7 +62,7 @@ git diff "$DIFF" | grep -nE '^\+(<<<<<<<|=======|>>>>>>>)' && echo "CONFLICT MAR
 # Flags added TODO/FIXME with no JIRA-style key (ABC-123) and no issue ref (#123).
 git diff "$DIFF" | grep '^+' | grep -iE 'TODO|FIXME' | grep -vE '[A-Z]{2,}-[0-9]+|#[0-9]+'
 ```
-The accepted reference format is repo-specific — check the repo's `CLAUDE.md`/`AGENTS.md` for its convention (e.g. `GRA-1234`, `#123`) and adjust the negative pattern.
+The accepted reference format is repo-specific — check the repo's `CLAUDE.md`/`AGENTS.md` (or `TICKET_PREFIX` in `PROFILE.md`) for its convention (e.g. `ABC-1234`, `#123`) and adjust the negative pattern.
 
 **U3 — Hardcoded secrets**
 ```bash

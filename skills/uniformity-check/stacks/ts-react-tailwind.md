@@ -26,7 +26,7 @@ the repo's own `CLAUDE.md`/`AGENTS.md` and sibling files always win over this ba
 
 ## Conventions
 - Imports: absolute (`tsconfig` paths) vs relative — match the repo config; no deep relative chains if aliases exist.
-- `const` over `let`; name id collections by what they hold (`appointmentIds`, not `patientIds`, when they're appointment ids).
+- `const` over `let`; name id collections by what they hold (`orderIds`, not `customerIds`, when they're order ids).
 - i18n: if the repo has locale files, never add a key to one locale only — keep all locales in sync.
 
 ## Design / layout

@@ -80,7 +80,7 @@ For every new symbol or UI piece the diff introduces, search for a precedent bef
 3. **Architectural drift** — a state/layer/data-flow choice that differs from how comparable code in the repo does it (e.g. a new state library for one component when the repo has a chosen one).
 4. **Styling drift** — raw values instead of the repo's design tokens, a new button/tag variant when one exists, CSS approach that differs from the repo's (utility classes vs modules vs CSS-in-JS).
 5. **Design / layout placement drift** — action-button position, header layout, list-row shape, dialog/drawer footer order, empty-state structure, column/field order. Find the closest comparable surface; if placement differs, flag it and **cite the comparable surface (file:line)**.
-6. **Naming precision** — names that under-specify (a `Set` of appointment ids named `…PatientIds`). The name should say what it holds.
+6. **Naming precision** — names that under-specify (a `Set` of order ids named `…CustomerIds`). The name should say what it holds.
 7. **Sibling parity** — for each non-trivial *behavior* the diff introduces (a permission/edit gate, an enable condition, a close/escape flow, a selection model), name the intent, find siblings facing the same intent, and if they diverge, converge on the better approach — don't default to the nearest neighbour; state the winner and why.
 
 **Confidence ≥ 80%. Cite the canonical version (file:line) for every finding.** Don't flag patterns the repo's docs explicitly sanction (documented hacks, intentional exceptions).
