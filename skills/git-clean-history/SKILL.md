@@ -28,10 +28,17 @@ git status --porcelain
 git branch --show-current
 git rev-parse --abbrev-ref @{upstream} 2>/dev/null
 
-# 3. Detect the base branch (develop is the main branch for this project)
-BASE=$(git merge-base HEAD develop)
+# 3. Detect the base branch: PR/MR target if available, else the remote default
+TARGET=$(gh pr view "$(git branch --show-current)" --json baseRefName -q .baseRefName 2>/dev/null) \
+  || TARGET=$(glab mr view "$(git branch --show-current)" -F json 2>/dev/null | jq -r '.target_branch // empty') \
+  || true
+TARGET=${TARGET:-$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null | sed 's@origin/@@')}
+TARGET=${TARGET:-main}
+git fetch -q origin "$TARGET" 2>/dev/null || true
+BASE=$(git merge-base HEAD "origin/$TARGET")
+[ -n "$BASE" ] || { echo "Cannot resolve base against origin/$TARGET — stop."; exit 1; }
 
-# 4. Check if branch has been pushed
+# 4. Check if branch has been pushed (informational only — NEVER the rewrite scope)
 git log --oneline @{upstream}..HEAD 2>/dev/null
 
 # 5. Count commits to decide strategy
@@ -45,6 +52,8 @@ git branch backup/$(git branch --show-current)-$(date +%Y%m%d-%H%M%S)
 If the working tree is dirty, **stop and ask the user** whether to stash or commit first.
 
 If the branch has been pushed and others may be working on it, **warn the user explicitly** about the risks of rewriting shared history.
+
+**The rewrite scope is always `$BASE..HEAD`** — every commit on this branch since it forked from its base. Never `@{upstream}..HEAD`: that is only the *unpushed* tail, so using it silently skips every commit already pushed and makes the audit look clean on a branch that isn't. Step 4 above prints it for the shared-history warning and nothing else. If `$BASE` failed to resolve, stop — do not fall back to another range.
 
 ## Process
 
@@ -218,10 +227,10 @@ When rewriting commit messages, follow these senior-level standards:
 A clean branch should tell a story:
 
 ```
-feat(scheduling): add clinic conflict detection          ← core feature
-feat(scheduling): add UI feedback for time conflicts     ← UI layer
-test(scheduling): add conflict detection unit tests      ← tests
-docs(scheduling): update API docs for conflict endpoint  ← docs
+feat(booking): add slot conflict detection            ← core feature
+feat(booking): add UI feedback for time conflicts      ← UI layer
+test(booking): add conflict detection unit tests       ← tests
+docs(booking): update API docs for conflict endpoint   ← docs
 ```
 
 Each commit should:
