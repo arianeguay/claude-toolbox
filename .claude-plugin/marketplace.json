@@ -1,15 +1,11 @@
 {
   "name": "claude-toolbox",
-  "owner": {
-    "name": "Ariane Guay",
-    "email": "ariane.dguay@gmail.com"
-  },
-  "description": "Instance-agnostic personal Claude Code skills and hooks",
+  "description": "Instance-agnostic Claude Code skills and hooks",
   "plugins": [
     {
       "name": "toolbox",
       "source": ".",
-      "description": "Instance-agnostic personal skills (git, MR/PR pipeline, review) plus worktree/skill-safety hooks"
+      "description": "Instance-agnostic skills (git, PR/MR pipeline, review) plus worktree/skill-safety hooks"
     }
   ]
 }
