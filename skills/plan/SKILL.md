@@ -10,7 +10,7 @@ The last link before writing code. Shaping decides **what** to ship and in **wha
 
 **Principle:** a shaping bundle gives decisions and their rationales, but not an implementation plan validated against the codebase. This skill fills that gap — it reads the real code to confirm what already exists (reuse vs build), where the change plugs in, which pattern to follow, then outputs an ordered list of changes.
 
-**What this skill is NOT:** not heavy phases with a verification criterion per step. An ordered list, each item naming the files it touches. Consistent with `smallest-footprint`: the lightest plan that lets you code without re-guessing.
+**What this skill is NOT:** not heavy phases with a verification criterion per step. An ordered list, each item naming the files it touches. Consistent with `toolbox:smallest-footprint`: the lightest plan that lets you code without re-guessing.
 
 ## Step 0 — Detect the entry path
 
@@ -39,7 +39,7 @@ Name the path taken in one line: `Path: Option A (shaping context)` or `Path: fa
 
 This is the value of the skill — don't skip it. Before writing a single line of the plan, read the real code to validate every implementation assumption:
 
-- **Reuse vs build:** does the component/util/hook/endpoint you need already exist? Grep before assuming you have to create it. Reuse beats reinvention — `uniformity-check` would flag it otherwise.
+- **Reuse vs build:** does the component/util/hook/endpoint you need already exist? Grep before assuming you have to create it. Reuse beats reinvention — `toolbox:uniformity-check` would flag it otherwise.
 - **Insertion point:** where does the change plug in? Read the target file, find the exact function/component and the neighbouring pattern to follow.
 - **Implicit coupling:** is there a twin to keep in sync (two functions that mirror each other, i18n across every locale, a selector that has to re-project into scope)?
 - **Contradicts the shaping?** If the code contradicts a decision from the bundle (an assumed pattern doesn't exist, an endpoint is missing), name it explicitly — this is the one case where you go back to shaping. Don't silently patch around it.

@@ -23,7 +23,7 @@ Explicit invocation:
 - "I think I'm in the tunnel"
 
 Also appropriate when the user makes a frustration remark ("why doesn't this work", "I've tried everything") — then offer:
-> "Quick check with `am-i-stuck` before continuing? Takes 3-5 min."
+> "Quick check with `toolbox:am-i-stuck` before continuing? Takes 3-5 min."
 
 Do **not** fire automatically on a timer. The user invokes it when they need it.
 

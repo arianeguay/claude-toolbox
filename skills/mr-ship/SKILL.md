@@ -46,16 +46,16 @@ Suggest, never gate. If the user named a mode, do not second-guess it.
 | # | Step | Skill | short | medium | full | Blocks? |
 |---|------|-------|:--:|:--:|:--:|---------|
 | 0 | Setup + behind-base guard | — | ✅ | ✅ | ✅ | **always** |
-| 1 | Resolve review feedback (iterations only) | `review-comments-resolver` | ✅ | ✅ | ✅ | only if user dismisses |
-| 2 | Mechanical checks | `mechanical-checks` | ✅ | ✅ | ✅ | never (accumulates) |
+| 1 | Resolve review feedback (iterations only) | `toolbox:review-comments-resolver` | ✅ | ✅ | ✅ | only if user dismisses |
+| 2 | Mechanical checks | `toolbox:mechanical-checks` | ✅ | ✅ | ✅ | never (accumulates) |
 | 3 | Type-check + lint | — | ✅ | ✅ | ✅ | on type errors |
-| 4 | Footprint reduction | `smallest-footprint` | ⏭ | ✅ | ✅ | only on risky findings |
-| 5 | Uniformity check | `uniformity-check` | ⏭ | ✅ | ✅ | only on discussable findings |
-| 6 | Comment audit | `comment-audit` | ⏭ | ✅ | ✅ | only if user dismisses |
-| 7 | Context validation | `context-validator` | ⏭ | ⏭ | ✅ | only if user reports an issue |
+| 4 | Footprint reduction | `toolbox:smallest-footprint` | ⏭ | ✅ | ✅ | only on risky findings |
+| 5 | Uniformity check | `toolbox:uniformity-check` | ⏭ | ✅ | ✅ | only on discussable findings |
+| 6 | Comment audit | `toolbox:comment-audit` | ⏭ | ✅ | ✅ | only if user dismisses |
+| 7 | Context validation | `toolbox:context-validator` | ⏭ | ⏭ | ✅ | only if user reports an issue |
 | 8 | Deep code review | *(see Step 8)* | ⏭ | ⏭ | ✅ | never (accumulates) |
-| 9 | Clean history | `git-clean-history` | ✅ | ✅ | ✅ | never (presents options) |
-| 10 | PR/MR description | `mr-description` | ✅ | ✅ | ✅ | runs automatically |
+| 9 | Clean history | `toolbox:git-clean-history` | ✅ | ✅ | ✅ | never (presents options) |
+| 10 | PR/MR description | `toolbox:mr-description` | ✅ | ✅ | ✅ | runs automatically |
 | 11 | Draft state report | — | ✅ | ✅ | ✅ | never |
 
 Three deliberate choices:
@@ -97,10 +97,10 @@ Prevention upstream of this skill: cut worktrees/branches from the fetched remot
 ---
 
 ## Step 1 — Resolve review feedback (iterations only) — *all modes*
-If a PR/MR already exists, invoke `review-comments-resolver` first — no point re-shipping with feedback pending, and fixing it may invalidate later steps. If no PR/MR yet → `⏭ Skipped — first ship`.
+If a PR/MR already exists, invoke `toolbox:review-comments-resolver` first — no point re-shipping with feedback pending, and fixing it may invalidate later steps. If no PR/MR yet → `⏭ Skipped — first ship`.
 
 ## Step 2 — Mechanical checks — *all modes*
-Invoke `mechanical-checks`. Auto-fix the auto-fixables (commit), accumulate the rest. Never blocks.
+Invoke `toolbox:mechanical-checks`. Auto-fix the auto-fixables (commit), accumulate the rest. Never blocks.
 
 ## Step 3 — Type-check + lint — *all modes*
 Run the repo's check commands. Read them from `PROFILE.md` (`LINT_CMD`, `TYPECHECK_CMD`) if present; otherwise detect from the manifest (`package.json` scripts, `Makefile`, `pyproject.toml`, `composer.json`). If neither yields a command → `⏭ Skipped — no check command found`; do not invent one.
@@ -111,16 +111,16 @@ Run the repo's check commands. Read them from `PROFILE.md` (`LINT_CMD`, `TYPECHE
 > The only step that blocks on its own findings. Cheap, objective, and a reviewer will hit it anyway.
 
 ## Step 4 — Footprint reduction — *medium, full*
-Invoke `smallest-footprint`. Runs *before* validation — clean the diff, then validate the lean version. Safe findings applied silently; risky findings presented (go/skip/pick).
+Invoke `toolbox:smallest-footprint`. Runs *before* validation — clean the diff, then validate the lean version. Safe findings applied silently; risky findings presented (go/skip/pick).
 
 ## Step 5 — Uniformity check — *medium, full*
-Invoke `uniformity-check`. Auto-applicable alignments applied silently; discussable ones presented with the canonical reference (go/skip/discuss).
+Invoke `toolbox:uniformity-check`. Auto-applicable alignments applied silently; discussable ones presented with the canonical reference (go/skip/discuss).
 
 ## Step 6 — Comment audit — *medium, full*
-Invoke `comment-audit` — audits *all* comments in changed files (incl. pre-existing ones now stale relative to the diff), not just newly-written ones. Applies approved cut/fix/add.
+Invoke `toolbox:comment-audit` — audits *all* comments in changed files (incl. pre-existing ones now stale relative to the diff), not just newly-written ones. Applies approved cut/fix/add.
 
 ## Step 7 — Context validation — *full only*
-Invoke `context-validator`. Scope discipline + code-path analysis automatically, then a ≤5-item human action list. Wait for "Done"/"Found an issue". Blocks if an issue is reported.
+Invoke `toolbox:context-validator`. Scope discipline + code-path analysis automatically, then a ≤5-item human action list. Wait for "Done"/"Found an issue". Blocks if an issue is reported.
 
 ## Step 8 — Deep code review — *full only*
 Run whatever deep-review capability the environment has — in priority order:
@@ -130,12 +130,12 @@ Run whatever deep-review capability the environment has — in priority order:
 Accumulate findings (confidence ≥ 80%), propose auto-fixes. If none of these exist → `⏭ Skipped — no deep-review tool available`. Never blocks.
 
 ## Step 9 — Clean history — *all modes*
-Invoke `git-clean-history`. Flags WIP/fixup/debug commits and non-conventional messages. Presents squash/rebase/leave options; never auto-squashes.
+Invoke `toolbox:git-clean-history`. Flags WIP/fixup/debug commits and non-conventional messages. Presents squash/rebase/leave options; never auto-squashes.
 
 > Its rewrite scope is `merge-base(HEAD, origin/$BASE)..HEAD` — the whole branch, not `@{upstream}..HEAD`. A scope limited to unpushed commits makes the audit look clean on a branch that isn't.
 
 ## Step 10 — PR/MR description — *all modes*
-Invoke `mr-description`. Generates/updates the title + description from the final diff and pushes after preview.
+Invoke `toolbox:mr-description`. Generates/updates the title + description from the final diff and pushes after preview.
 
 In **short** mode, skip the regeneration when nothing new surfaced (only fixes/polish since the last description) → `⏭ Skipped — description up to date`. Judge from the diff surfaces, not from commit-message conventions.
 

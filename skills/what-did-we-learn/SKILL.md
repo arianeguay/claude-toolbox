@@ -18,7 +18,7 @@ Some setups have a separate retrospective that scores a shipped unit of work (e.
 | Job | When | Output |
 |---|---|---|
 | Estimate calibration | Post-ship of a specific tracked task | Shaping vs reality, what to adjust for the next similar task |
-| `what-did-we-learn` | Post-session, post-MR/PR, post-feature | Generalizable knowledge: memories, instruction-file updates, skill/agent modifications |
+| `toolbox:what-did-we-learn` | Post-session, post-MR/PR, post-feature | Generalizable knowledge: memories, instruction-file updates, skill/agent modifications |
 
 If the user just shipped a tracked task and you have a calibration retrospective, propose it first; this skill is broader and captures things it doesn't (codebase patterns, workflow rules, skill calibration notes).
 

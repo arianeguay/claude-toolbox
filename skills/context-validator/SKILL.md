@@ -10,7 +10,7 @@ Validate a change before review. **Automate everything possible, then hand the h
 
 **For the human steps: be ultra-specific.** Not "test the orders page" but "open `/orders`, click an order with line items, verify the tooltip shows the new field." Every step must be executable without interpretation — no ambiguity, no open-ended questions, nothing left to the reader's judgment.
 
-This is the judgment-level pre-review pass. Pair it with `mechanical-checks` (objective violations) and `uniformity-check` / `smallest-footprint` (drift + size).
+This is the judgment-level pre-review pass. Pair it with `toolbox:mechanical-checks` (objective violations) and `toolbox:uniformity-check` / `toolbox:smallest-footprint` (drift + size).
 
 ---
 
