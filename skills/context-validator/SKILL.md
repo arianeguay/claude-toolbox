@@ -63,7 +63,19 @@ Ask once: intentional (one-shot migration, config, pure styling) → accept with
 
 ---
 
-## Step 4 — Per-stack analysis + targeted questions
+## Step 4 — Project docs (if configured)
+
+If `PROFILE.md` lists `PROJECT_DOCS`, read each listed path that exists in the repo and scan the diff for anything that contradicts it — a documented edge case ignored, a canonical pattern diverged from, a known workaround flagged as if it were new. Skip silently if `PROJECT_DOCS` is empty, or a listed path doesn't exist.
+
+```
+── Project docs ──────────────────────────────────────────
+  ✅ docs/EDGE_CASES.md — no contradictions
+  ⚠️ docs/TEST_GUIDELINES.md — mock pattern diverges from canonical example (§3)
+```
+
+---
+
+## Step 5 — Per-stack analysis + targeted questions
 
 Detect the stack(s) from the diff and **read `stacks/<stack>.md`**; it lists the stack's *automated* analyses (which I run and report) and the *targeted human questions* (which I ask only when the trigger files are present).
 
@@ -78,7 +90,7 @@ Run the automated analyses first and report findings inline — they *replace* q
 
 ---
 
-## Step 5 — Human action list (only what truly can't be automated)
+## Step 6 — Human action list (only what truly can't be automated)
 
 ```
 ── Things you need to do (I can't check these) ──────────
@@ -93,7 +105,7 @@ That's it — 2 things.
 
 ---
 
-## Step 6 — Confirm
+## Step 7 — Confirm
 
 `AskUserQuestion` with exactly two options: **"Done"** / **"Found an issue"**. No item-by-item interrogation. If an issue → help fix, re-run. If done → final report:
 
@@ -101,6 +113,7 @@ That's it — 2 things.
 Context Validator — {branch}
 ── Scope ──────────  ✅ within scope
 ── Tests ──────────  ✅ present / ⚠️ none (justified: …)
+── Project docs ───  ✅ no contradictions / ⏭ none configured
 ── [stack] analysis  ✅ no race/undefined-data paths
 ── Human checks ───  ✅ 2/2 confirmed
 ────────────────────────────────────────────────────────

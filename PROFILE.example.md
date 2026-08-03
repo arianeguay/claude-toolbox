@@ -43,6 +43,15 @@ Read by: `mr-ship` step 3. Left empty, it detects from `package.json` scripts, `
 `pyproject.toml`, or `composer.json`; if nothing is found the step is skipped, never
 invented.
 
+## Project docs
+
+```
+PROJECT_DOCS=              # space-separated paths to convention/edge-case docs, e.g. docs/TEST_GUIDELINES.md docs/EDGE_CASES.md
+```
+
+Read by: `context-validator` — scans the diff against each listed doc that exists; skips
+any path that doesn't, and skips the whole step if left empty.
+
 ## App under test
 
 ```
