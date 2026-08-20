@@ -35,6 +35,7 @@ skills/
   issues-candidate/    # end-of-task sweep for follow-up work worth filing (trackers/ per host)
   is-it-down/          # check live status of gitlab/github/anthropic/etc via their status-page APIs
   plan/                # code-anchored implementation plan, bridging shaping decisions to build
+  start-issue/         # bare issue link → branch/worktree, In Progress, build, PR, In Review (trackers/ per host)
 hooks/
   hooks.json           # SessionStart/PreToolUse/PostToolUse wiring (paths via ${CLAUDE_PLUGIN_ROOT})
   guard-skill-deletion.sh          # PreToolUse(Bash) — stub, see Hooks below
