@@ -1,6 +1,6 @@
 ---
 name: start-issue
-description: Take a tracker issue from "link pasted" to "PR open, issue in review" — reads the issue, creates the branch/worktree the tracker names, moves it to In Progress, builds it (directly if simple, plan-first if complex), opens the PR/MR, then moves it to In Review. Use whenever the user drops a bare issue link or key (a Linear URL, `ABC-123`) with no other instruction, or says "start this issue", "pick this up", "commence ce ticket". Do NOT use to file a new issue (that's `issues-candidate`) or to plan without building.
+description: Take a tracker issue from "link pasted" to "PR open, issue in review" — reads the issue, creates the branch/worktree the tracker names, moves it to In Progress, builds it (directly if simple, plan-first if complex), opens the PR/MR, then moves it to In Review. Use whenever the user drops a bare issue link or key (Linear/GitHub/GitLab URL, `ABC-123`, `#42`) with no other instruction, or says "start this issue", "pick this up", "commence ce ticket". Do NOT use to file a new issue (that's `issues-candidate`) or to plan without building.
 user-invocable: true
 ---
 
@@ -38,23 +38,25 @@ Read the full issue: title, description, labels, state, estimate, priority, rela
 
 Get the branch name **from the tracker** (adapter says how). Trackers own this — a hand-rolled name breaks their branch↔issue linking. No tracker-provided name → derive `<key-lowercased>-<kebab-title>` and say you derived it.
 
-Create the worktree on that branch:
+Two shapes, and the adapter says which one applies:
 
-```
-EnterWorktree  name: <tracker branch name>
-```
+- **The tracker only names the branch** (Linear): create it locally.
+  ```
+  EnterWorktree  name: <tracker branch name>
+  ```
+  Tool unavailable → `git worktree add -b <branch> .claude/worktrees/<branch> origin/<default-branch>`.
+- **The tracker creates the branch server-side** (GitHub `gh issue develop`, GitLab's branch API): the branch already exists on the remote and carries the link. **Attach** the worktree to it — creating a second local branch of the same name silently discards the link.
+  ```
+  EnterWorktree  path: .claude/worktrees/<branch>    # after `git worktree add <path> <branch>`
+  ```
 
-Every task gets its own worktree — never branch-switch the main checkout. If the tool isn't available:
-
-```bash
-git worktree add -b <branch> .claude/worktrees/<branch> origin/<default-branch>
-```
-
-Confirm you're in it (`pwd`, `git branch --show-current`) before touching a file.
+Every task gets its own worktree — never branch-switch the main checkout. Confirm you're in it (`pwd`, `git branch --show-current`) before touching a file.
 
 ## Step 3 — Move the issue to In Progress
 
 Adapter step. Set the in-progress state and assign the issue to the user if it's unassigned. Do this **after** the worktree exists, so the tracker never claims work that has no branch.
+
+Not every tracker has workflow states — GitHub and GitLab issues are only open/closed, and the state lives in a Project field or a scoped label, or nowhere. The adapter says which mechanism the repo actually uses; when it has none, assignment is the whole signal and the Step 8 report says so. Never fake a transition, and never close an issue to mean "moved on".
 
 ## Step 4 — Triage: simple or complex
 
@@ -96,7 +98,7 @@ Skill missing → push and open the PR by hand (`gh pr create` / `glab mr create
 
 ## Step 7 — Move the issue to In Review
 
-Adapter step. Set the in-review state and post the PR/MR URL back on the issue.
+Adapter step. Set the in-review state and link the PR/MR back on the issue — through the tracker's native link (`Closes #<n>`, a Linear attachment), not just a comment.
 
 ## Step 8 — Report
 
