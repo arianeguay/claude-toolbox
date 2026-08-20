@@ -39,6 +39,7 @@ skills/
 hooks/
   hooks.json           # SessionStart/PreToolUse/PostToolUse wiring (paths via ${CLAUDE_PLUGIN_ROOT})
   guard-skill-deletion.sh          # PreToolUse(Bash) — stub, see Hooks below
+  detect-issue-link.sh             # UserPromptSubmit — bare issue link ⇒ run start-issue
   symlink-worktree-local-config.sh # SessionStart + PostToolUse(Bash) — stub, see Hooks below
 PROFILE.example.md     # per-project settings the skills read (copy to PROFILE.md)
 ```
@@ -112,11 +113,15 @@ claude --plugin-dir /path/to/claude-toolbox
 
 ## Hooks
 
-`hooks/hooks.json` wires two hooks, resolved against `${CLAUDE_PLUGIN_ROOT}`:
+`hooks/hooks.json` wires three hooks, resolved against `${CLAUDE_PLUGIN_ROOT}`:
 
 - `guard-skill-deletion.sh` — PreToolUse(Bash), intended to block accidental skill deletion.
 - `symlink-worktree-local-config.sh` — SessionStart + PostToolUse(Bash), intended to link
   local config into git worktrees.
+- `detect-issue-link.sh` — UserPromptSubmit. **Implemented.** A prompt that is *only* a
+  tracker issue reference (Linear/GitHub/GitLab URL or `ABC-123`) gets a line of context
+  saying that means running `start-issue` end to end. A reference inside a real instruction
+  is ignored — the gate is "the prompt is at most the reference plus a few words".
 
-> **Both are currently pass-through stubs** — they install cleanly and do nothing. Neither
+> **The first two are pass-through stubs** — they install cleanly and do nothing. Neither
 > guards nor symlinks anything yet. Implement them, then bump the plugin version.
