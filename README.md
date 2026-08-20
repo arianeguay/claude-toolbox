@@ -111,6 +111,21 @@ the marketplace and picks up working-tree edits (run `/reload-plugins` after cha
 claude --plugin-dir /path/to/claude-toolbox
 ```
 
+## Developing the toolbox itself
+
+The plugin runs from a version-pinned copy under `~/.claude/plugins/cache/`, not from this
+checkout — editing a skill here does nothing until that copy is refreshed. After an edit,
+either bump `.claude-plugin/plugin.json` and `/plugin marketplace update claude-toolbox`,
+or re-sync the current version in place:
+
+```bash
+VER=$(jq -r .version .claude-plugin/plugin.json)
+DST="$HOME/.claude/plugins/cache/claude-toolbox/toolbox/$VER"
+tar --exclude=.git -cf - . | tar -C "$DST" -xf -
+```
+
+Either way the change lands on the **next session** — plugins load at startup.
+
 ## Hooks
 
 `hooks/hooks.json` wires three hooks, resolved against `${CLAUDE_PLUGIN_ROOT}`:
