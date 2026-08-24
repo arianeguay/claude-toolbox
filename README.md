@@ -128,15 +128,39 @@ Either way the change lands on the **next session** — plugins load at startup.
 
 ## Hooks
 
-`hooks/hooks.json` wires three hooks, resolved against `${CLAUDE_PLUGIN_ROOT}`:
+`hooks/hooks.json` wires four hooks, resolved against `${CLAUDE_PLUGIN_ROOT}`:
 
 - `guard-skill-deletion.sh` — PreToolUse(Bash), intended to block accidental skill deletion.
-- `symlink-worktree-local-config.sh` — SessionStart + PostToolUse(Bash), intended to link
-  local config into git worktrees.
+- `symlink-worktree-local-config.sh` — SessionStart + PostToolUse(Bash). **Implemented.**
+  See below.
 - `detect-issue-link.sh` — UserPromptSubmit. **Implemented.** A prompt that is *only* a
   tracker issue reference (Linear/GitHub/GitLab URL or `ABC-123`) gets a line of context
   saying that means running `start-issue` end to end. A reference inside a real instruction
   is ignored — the gate is "the prompt is at most the reference plus a few words".
 
-> **The first two are pass-through stubs** — they install cleanly and do nothing. Neither
-> guards nor symlinks anything yet. Implement them, then bump the plugin version.
+> **`guard-skill-deletion.sh` is still a pass-through stub** — it installs cleanly and
+> guards nothing. Implement it, then bump the plugin version.
+
+### Local config in worktrees
+
+`symlink-worktree-local-config.sh` symlinks gitignored local config from the main repo into
+every registered worktree, so a worktree session sees the same `.env`, `CLAUDE.local.md`,
+agents and rules as the main checkout. It links rather than copies, so editing the file in a
+worktree updates the main repo instead of silently drifting. Runs on PostToolUse(Bash) too,
+since `git worktree add` from a terminal never fires SessionStart.
+
+Defaults cover `CLAUDE.local.md`, `.claude/settings.local.json`, `.claude/agents`,
+`.claude/rules`, `.cursor`, `.vscode/settings.json`, `.envrc` and `.env*.local`. Add
+project-specific paths in `.claude/worktree-link` at the main repo root, one per line:
+
+```
+# noether
+PROFILE.md
+skills-lock.json
+.superpowers
+```
+
+The list is an allowlist on purpose. Enumerating gitignored files instead sweeps up build
+artifacts, `.DS_Store` and the worktree root itself — measured on one repo, 305 ignored
+entries for about 12 worth linking. Absolute paths and `..` entries are skipped, as is any
+path that contains the worktree (linking `.worktrees/` into a worktree is self-referential).
