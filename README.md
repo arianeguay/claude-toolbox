@@ -34,6 +34,7 @@ skills/
   what-did-we-learn/   # end-of-session capture of generalizable learnings into memory
   issues-candidate/    # end-of-task sweep for follow-up work worth filing (trackers/ per host)
   is-it-down/          # check live status of gitlab/github/anthropic/etc via their status-page APIs
+  message-other-session/ # hand off a settled decision to a concurrent session before it redoes the work
   plan/                # code-anchored implementation plan, bridging shaping decisions to build
   start-issue/         # bare issue link → branch/worktree, In Progress, build, PR, In Review (trackers/ per host)
 hooks/
