@@ -64,10 +64,30 @@ Area touched (→ scope) · primary intent (feat/fix/refactor/…) · non-obviou
 
 If the diff changes `*.tsx`/`*.jsx`/templates (a UI change), try to capture real screenshots instead of a placeholder — always prefer a real screenshot over `📸 TODO`.
 
-**Preconditions — all must hold, else skip to the placeholder/N/A fallback:**
-- Dev server reachable: `curl -s -o /dev/null -w '%{http_code}' http://localhost:3000 --max-time 3` returns `200` (adjust port per repo).
-- Chrome DevTools MCP tools are available (`ToolSearch` for `mcp__chrome-devtools__*`, or already loaded).
+**Preconditions:**
+- Chrome DevTools MCP tools are available (`ToolSearch` for `mcp__chrome-devtools__*`, or already loaded). If the server won't start, check its `command` resolves — a bare `npx` fails when the MCP env's `PATH` lacks the Node install; use an absolute path.
 - The repo has a known local-dev login (check memory for a reference like "local dev login" — username/password to authenticate the app before navigating).
+- A dev server **serving the branch under review** — resolve it per Step 3.5.0, don't assume one is up.
+
+If a precondition can't be met, fall back per the rule at the end of this step — and **name the failed precondition in the final report**, never fall back silently.
+
+### Step 3.5.0 — Resolve a dev server for *this* worktree
+
+A reachable `localhost:3000` proves nothing: it's often another worktree's server, so the screenshots would show the wrong branch.
+
+1. **Identify the listener** on the expected port:
+   ```bash
+   PID=$(lsof -nP -iTCP:3000 -sTCP:LISTEN -t | head -1)
+   [ -n "$PID" ] && lsof -a -p "$PID" -d cwd -Fn | sed -n 's/^n//p'   # its working dir
+   ```
+2. **Compare** that dir to `git rev-parse --show-toplevel`. Same → reuse it. Different → it belongs to another worktree or session.
+3. **Never kill a server you didn't start** — a concurrent session is probably using it. Start your own on a free port instead (`3100`, `3200`, …), reading the dev script from `package.json` (`start`/`dev`):
+   ```bash
+   pnpm start -- --port 3100 --strictPort > /tmp/mr-devserver.log 2>&1 &
+   ```
+   Run it detached from the repo root, then poll until `curl -s -o /dev/null -w '%{http_code}' http://localhost:3100` returns `200` (give it up to ~60s; on timeout, read the log and fall back).
+4. **Use the resolved port** for every navigation in the procedure below.
+5. **Stop only a server this step started**, after the uploads are done. Leave a pre-existing one running.
 
 **Procedure:**
 1. **Log in** (if the app is behind auth): `new_page` to the app's login route, `fill` credentials, `click` submit, `take_snapshot` to confirm landing.
@@ -88,7 +108,7 @@ If the diff changes `*.tsx`/`*.jsx`/templates (a UI change), try to capture real
 6. **Embed** the returned image URLs in the Screenshots section (see Step 4's narrative-walkthrough rule for ≥3 images — one short paragraph of *why this scenario is shown* before each image, referencing the specific behavior it demonstrates).
 7. **Clean up:** delete the local `.mr-screenshots/` directory once uploaded (images now live on the host, not the repo). Before deleting, run `git status --porcelain` — if the files were staged by anything else, `git restore --staged` them first so the delete doesn't get bundled into an unrelated commit. Never commit screenshot files to the branch.
 
-**If any precondition fails** (server down, tool unavailable, no known login, diff is a pure refactor/backend/no visual surface): use the existing `📸 TODO: add before merging` or `N/A — no UI change` fallback — don't block the rest of the pipeline on this.
+**If any precondition fails** (dev server couldn't be started, tool unavailable, no known login, diff is a pure refactor/backend/no visual surface): use the existing `📸 TODO: add before merging` or `N/A — no UI change` fallback — don't block the rest of the pipeline on this. **State which precondition failed and why in the final report** (e.g. "no screenshots: `mcp__chrome-devtools__*` unavailable"), so a silent `📸 TODO` is never mistaken for "the diff has no UI".
 
 **Multi-step flow → prefer video over a screenshot stack.** A static image can't show a before/after transition, an animation, or a multi-click sequence. If `playwright-cli` is installed (see `toolbox:browser-test` for the tool-selection table — it's the only one of the three that records) and the diff is that kind of flow, record instead:
 ```bash
@@ -153,7 +173,7 @@ glab mr create --source-branch "$BRANCH" --target-branch "$TARGET" --title "Draf
 glab mr update "$MR_IID" --title "$TITLE" --description "$DESCRIPTION" --draft   # or --ready
 ```
 
-After pushing: show the URL; if the screenshots section still has the TODO placeholder, remind to add them before requesting review.
+After pushing: show the URL; if the screenshots section still has the TODO placeholder, say **which Step 3.5 precondition failed** and remind to add them before requesting review.
 
 ---
 
