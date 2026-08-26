@@ -1,13 +1,14 @@
 {
   "name": "claude-toolbox",
   "owner": {
-    "name": "arianeguay"
+    "name": "arianeguay",
+    "url": "https://github.com/arianeguay"
   },
   "description": "Instance-agnostic Claude Code skills and hooks",
   "plugins": [
     {
       "name": "toolbox",
-      "source": ".",
+      "source": "./plugins/toolbox",
       "description": "Instance-agnostic skills (git, PR/MR pipeline, review) plus worktree/skill-safety hooks"
     }
   ]
