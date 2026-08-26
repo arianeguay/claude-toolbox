@@ -15,35 +15,42 @@ hooks. Sync across machines is `/plugin marketplace update`.
 ```text
 .claude-plugin/
   marketplace.json     # marketplace catalog (lists the `toolbox` plugin)
-  plugin.json          # the `toolbox` plugin manifest (name, version)
-skills/
-  git-clean-history/   # rewrite messy git history into a clean, senior-level log (git-only)
-  clean-worktree/      # remove stale worktrees/branches after squash-merge (via [gone] upstream)
-  fix-ci/              # diagnose + fix CI failures (GitLab/GitHub, multi-toolchain)
-  smallest-footprint/  # audit a PR/MR diff and reduce its surface area
-  mechanical-checks/   # pre-review scan for mechanical violations (per-stack checks in stacks/)
-  context-validator/   # judgment-level pre-review: scope + code-path analysis, then a precise human action list
-  comment-audit/       # audit changed-file comments (noise/stale/missing/over-doc) before merge
-  merge-parent/        # merge the parent/default branch into current, w/ mechanical anti-drop check on conflicts
-  mr-description/      # generate/update a PR/MR title + description from the diff (gh/glab)
-  review-comments-resolver/ # resolve human + bot (CodeRabbit/Bugbot) review comments (gh/glab)
-  mr-ship/             # orchestrator: the pre-review pipeline at three depths (full/medium/short)
-  uniformity-check/    # check a diff for drift vs the codebase (per-stack baselines in stacks/)
-  browser-test/        # drive a browser for UI validation (DevTools MCP / Playwright MCP / playwright-cli)
-  am-i-stuck/          # Shape Up hill-chart / "am I in the tunnel?" self-diagnostic
-  what-did-we-learn/   # end-of-session capture of generalizable learnings into memory
-  issues-candidate/    # end-of-task sweep for follow-up work worth filing (trackers/ per host)
-  is-it-down/          # check live status of gitlab/github/anthropic/etc via their status-page APIs
-  message-other-session/ # hand off a settled decision to a concurrent session before it redoes the work
-  plan/                # code-anchored implementation plan, bridging shaping decisions to build
-  start-issue/         # bare issue link → branch/worktree, In Progress, build, PR, In Review (trackers/ per host)
-hooks/
-  hooks.json           # SessionStart/PreToolUse/PostToolUse wiring (paths via ${CLAUDE_PLUGIN_ROOT})
-  guard-skill-deletion.sh          # PreToolUse(Bash) — stub, see Hooks below
-  detect-issue-link.sh             # UserPromptSubmit — bare issue link ⇒ run start-issue
-  symlink-worktree-local-config.sh # SessionStart + PostToolUse(Bash) — stub, see Hooks below
-PROFILE.example.md     # per-project settings the skills read (copy to PROFILE.md)
+plugins/toolbox/       # the plugin itself — what `source: "./plugins/toolbox"` points at
+  .claude-plugin/
+    plugin.json        # the `toolbox` plugin manifest (name, version)
+  skills/
+    git-clean-history/   # rewrite messy git history into a clean, senior-level log (git-only)
+    clean-worktree/      # remove stale worktrees/branches after squash-merge (via [gone] upstream)
+    fix-ci/              # diagnose + fix CI failures (GitLab/GitHub, multi-toolchain)
+    smallest-footprint/  # audit a PR/MR diff and reduce its surface area
+    mechanical-checks/   # pre-review scan for mechanical violations (per-stack checks in stacks/)
+    context-validator/   # judgment-level pre-review: scope + code-path analysis, then a precise human action list
+    comment-audit/       # audit changed-file comments (noise/stale/missing/over-doc) before merge
+    merge-parent/        # merge the parent/default branch into current, w/ mechanical anti-drop check on conflicts
+    mr-description/      # generate/update a PR/MR title + description from the diff (gh/glab)
+    review-comments-resolver/ # resolve human + bot (CodeRabbit/Bugbot) review comments (gh/glab)
+    mr-ship/             # orchestrator: the pre-review pipeline at three depths (full/medium/short)
+    uniformity-check/    # check a diff for drift vs the codebase (per-stack baselines in stacks/)
+    browser-test/        # drive a browser for UI validation (DevTools MCP / Playwright MCP / playwright-cli)
+    am-i-stuck/          # Shape Up hill-chart / "am I in the tunnel?" self-diagnostic
+    what-did-we-learn/   # end-of-session capture of generalizable learnings into memory
+    issues-candidate/    # end-of-task sweep for follow-up work worth filing (trackers/ per host)
+    is-it-down/          # check live status of gitlab/github/anthropic/etc via their status-page APIs
+    message-other-session/ # hand off a settled decision to a concurrent session before it redoes the work
+    plan/                # code-anchored implementation plan, bridging shaping decisions to build
+    start-issue/         # bare issue link → branch/worktree, In Progress, build, PR, In Review (trackers/ per host)
+  hooks/
+    hooks.json           # SessionStart/PreToolUse/PostToolUse wiring (paths via ${CLAUDE_PLUGIN_ROOT})
+    guard-skill-deletion.sh          # PreToolUse(Bash) — stub, see Hooks below
+    detect-issue-link.sh             # UserPromptSubmit — bare issue link ⇒ run start-issue
+    symlink-worktree-local-config.sh # SessionStart + PostToolUse(Bash) — stub, see Hooks below
+  PROFILE.example.md     # per-project settings the skills read (copy to PROFILE.md)
 ```
+
+The plugin lives in `plugins/toolbox/` rather than at the repo root on purpose: the
+claude.ai marketplace sync (Cowork, cloud sessions, the Plugins page) only accepts a
+relative plugin source that starts with `./`, so `"source": "."` — which the CLI
+accepts — makes the marketplace fail to sync there.
 
 ## Install
 
@@ -59,7 +66,7 @@ The hooks activate automatically when the plugin is enabled — no manual copy s
 
 ## Configure
 
-Copy `PROFILE.example.md` to `PROFILE.md` — in the repo you're working in, or in
+Copy `plugins/toolbox/PROFILE.example.md` to `PROFILE.md` — in the repo you're working in, or in
 `~/.claude/` for machine-wide defaults — and fill in what applies: ticket prefix, lint and
 type-check commands, app URL, shaping directory.
 
@@ -91,12 +98,12 @@ flipping draft to ready.
 The repo is the source of truth. To ship a change everywhere:
 
 1. Commit + push to `main`.
-2. Bump `version` in `.claude-plugin/plugin.json` (users only receive updates when it changes).
+2. Bump `version` in `plugins/toolbox/.claude-plugin/plugin.json` (users only receive updates when it changes).
 3. On each machine: `/plugin marketplace update` — Claude Code refetches the plugin.
 
 ## Add a skill
 
-1. Drop a `skills/<name>/SKILL.md` (and any support files) into the repo.
+1. Drop a `plugins/toolbox/skills/<name>/SKILL.md` (and any support files) into the repo.
 2. Commit + push, bump `plugin.json` version.
 3. Other machines: `/plugin marketplace update`. The skill appears as `/toolbox:<name>`.
 
@@ -109,27 +116,27 @@ To iterate on a skill or hook without publishing, load the repo directly — thi
 the marketplace and picks up working-tree edits (run `/reload-plugins` after changes):
 
 ```bash
-claude --plugin-dir /path/to/claude-toolbox
+claude --plugin-dir /path/to/claude-toolbox/plugins/toolbox
 ```
 
 ## Developing the toolbox itself
 
 The plugin runs from a version-pinned copy under `~/.claude/plugins/cache/`, not from this
 checkout — editing a skill here does nothing until that copy is refreshed. After an edit,
-either bump `.claude-plugin/plugin.json` and `/plugin marketplace update claude-toolbox`,
+either bump `plugins/toolbox/.claude-plugin/plugin.json` and `/plugin marketplace update claude-toolbox`,
 or re-sync the current version in place:
 
 ```bash
-VER=$(jq -r .version .claude-plugin/plugin.json)
+VER=$(jq -r .version plugins/toolbox/.claude-plugin/plugin.json)
 DST="$HOME/.claude/plugins/cache/claude-toolbox/toolbox/$VER"
-tar --exclude=.git -cf - . | tar -C "$DST" -xf -
+tar -C plugins/toolbox -cf - . | tar -C "$DST" -xf -
 ```
 
 Either way the change lands on the **next session** — plugins load at startup.
 
 ## Hooks
 
-`hooks/hooks.json` wires four hooks, resolved against `${CLAUDE_PLUGIN_ROOT}`:
+`plugins/toolbox/hooks/hooks.json` wires four hooks, resolved against `${CLAUDE_PLUGIN_ROOT}`:
 
 - `guard-skill-deletion.sh` — PreToolUse(Bash), intended to block accidental skill deletion.
 - `symlink-worktree-local-config.sh` — SessionStart + PostToolUse(Bash). **Implemented.**
