@@ -18,9 +18,13 @@ The build steps delegate to the other toolbox skills — this file is the spine,
 
 Accept any of: a tracker URL, a bare key (`ABC-123`), or "the current branch's issue".
 
+The session's own branch is the trunk (Step 2), so "the current branch" means a worktree's branch, not `git branch --show-current`:
+
 ```bash
-git branch --show-current | grep -oiE "${TICKET_PREFIX:-[A-Z]{2,}}-[0-9]+" | tr '[:lower:]' '[:upper:]'
+git worktree list | grep -oiE "${TICKET_PREFIX:-[A-Z]{2,}}-[0-9]+" | tr '[:lower:]' '[:upper:]' | sort -u
 ```
+
+More than one match → ask which; the session has no cwd to answer it for you.
 
 Pick the tracker adapter from `trackers/<TRACKER>.md` (`TRACKER` in `PROFILE.md`, else inferred from the URL host). No adapter for the host → stop and say so; don't half-run the flow.
 
@@ -41,16 +45,23 @@ Get the branch name **from the tracker** (adapter says how). Trackers own this �
 Two shapes, and the adapter says which one applies:
 
 - **The tracker only names the branch** (Linear): create it locally.
+  ```bash
+  git worktree add -b <branch> .claude/worktrees/<branch> origin/<default-branch>
   ```
-  EnterWorktree  name: <tracker branch name>
-  ```
-  Tool unavailable → `git worktree add -b <branch> .claude/worktrees/<branch> origin/<default-branch>`.
 - **The tracker creates the branch server-side** (GitHub `gh issue develop`, GitLab's branch API): the branch already exists on the remote and carries the link. **Attach** the worktree to it — creating a second local branch of the same name silently discards the link.
-  ```
-  EnterWorktree  path: .claude/worktrees/<branch>    # after `git worktree add <path> <branch>`
+  ```bash
+  git worktree add .claude/worktrees/<branch> <branch>
   ```
 
-Every task gets its own worktree — never branch-switch the main checkout. Confirm you're in it (`pwd`, `git branch --show-current`) before touching a file.
+Every task gets its own worktree — never branch-switch the main checkout.
+
+**The worktree holds the files, not the session.** Do not move the session's cwd into it — no `EnterWorktree`, no `cd`. Sessions are keyed by cwd, so a session that entered a worktree is filed under that path: `claude --resume` from the main checkout will not list it, which after a crash is indistinguishable from a session that never existed, and removing the worktree strands it for good.
+
+So address the worktree explicitly for the rest of the flow — `git -C <path>`, `make -C <path>`, absolute paths for every read and write. Set `WT=$(pwd)/.claude/worktrees/<branch>` once and use it. A bare `git` command now lands on the trunk, so confirm the worktree before the first edit, and never on `pwd`:
+
+```bash
+git -C "$WT" branch --show-current   # must print <branch>
+```
 
 ## Step 3 — Move the issue to In Progress
 
