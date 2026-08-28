@@ -124,6 +124,18 @@ For **every `<` line lost vs. the parent**, apply this invariant:
   - **Yes, our branch changed it** → intentional drop, fine.
   - **No, our branch never touched that area** → 🚨 **silent drop** — this is reverting parent work. **Stop immediately, do not commit.**
 
+For **every `<` line lost vs. our branch** that is a guard — a typed `except`,
+an early return, a validation, an error handler — the line diff is not enough.
+The parent may have **moved the responsibility** rather than dropped it: the work
+your guard protected now runs on another thread, inside another function, behind
+another handler. "The parent changed this area" then reads as intentional and the
+check passes clean, while the behaviour is gone.
+
+Ask where that responsibility lives in the parent's new structure, and re-place
+the guard there. Watch for a catch-all (`except Exception`, `catch (e)`) that now
+sits between the work and your typed handler — it swallows the exception your
+branch added, and no line was lost to show it.
+
 Present a per-file summary **before any commit**:
 
 ```
