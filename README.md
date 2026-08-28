@@ -58,7 +58,7 @@ Add the marketplace once, then install the plugin:
 
 ```text
 /plugin marketplace add arianeguay/claude-toolbox
-/plugin install toolbox@claude-toolbox
+/plugin install toolbox@arianeguay
 ```
 
 Skills are namespaced under the plugin: `/toolbox:mr-ship`, `/toolbox:fix-ci`, etc.
@@ -123,12 +123,12 @@ claude --plugin-dir /path/to/claude-toolbox/plugins/toolbox
 
 The plugin runs from a version-pinned copy under `~/.claude/plugins/cache/`, not from this
 checkout — editing a skill here does nothing until that copy is refreshed. After an edit,
-either bump `plugins/toolbox/.claude-plugin/plugin.json` and `/plugin marketplace update claude-toolbox`,
+either bump `plugins/toolbox/.claude-plugin/plugin.json` and `/plugin marketplace update arianeguay`,
 or re-sync the current version in place:
 
 ```bash
 VER=$(jq -r .version plugins/toolbox/.claude-plugin/plugin.json)
-DST="$HOME/.claude/plugins/cache/claude-toolbox/toolbox/$VER"
+DST="$HOME/.claude/plugins/cache/arianeguay/toolbox/$VER"
 tar -C plugins/toolbox -cf - . | tar -C "$DST" -xf -
 ```
 
