@@ -141,6 +141,8 @@ Always print the **Not filing** section, even when empty — it shows the filter
 
 **6D — Cross-reference:** if a filed issue corresponds to a `TODO`/`FIXME` in the diff, edit the comment to carry the issue key. A TODO without a key is what this skill exists to stop.
 
+**6E — Close an existing issue (only if the session actually answered it):** post the evidence as a comment first, quoting the issue's acceptance criteria and answering each one explicitly — including "not addressed". Writing that comment is what exposes a criterion with no evidence behind it. Only then set the state, and only if every criterion is met. A finding that came out of the same investigation is not automatically the finding the issue asked for; adjacent evidence closes nothing. Partial evidence means the comment stands and the issue stays open.
+
 ---
 
 ## Step 7 — No tracker reachable
