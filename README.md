@@ -34,6 +34,7 @@ plugins/toolbox/       # the plugin itself — what `source: "./plugins/toolbox"
     browser-test/        # drive a browser for UI validation (DevTools MCP / Playwright MCP / playwright-cli)
     am-i-stuck/          # Shape Up hill-chart / "am I in the tunnel?" self-diagnostic
     what-did-we-learn/   # end-of-session capture of generalizable learnings into memory
+    adhd-summary/        # compress a finished task into merge/don't-merge + what needs you
     issues-candidate/    # end-of-task sweep for follow-up work worth filing (trackers/ per host)
     is-it-down/          # check live status of gitlab/github/anthropic/etc via their status-page APIs
     message-other-session/ # hand off a settled decision to a concurrent session before it redoes the work
