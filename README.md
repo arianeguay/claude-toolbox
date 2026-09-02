@@ -39,8 +39,8 @@ plugins/toolbox/       # the plugin itself — what `source: "./plugins/toolbox"
     is-it-down/          # check live status of gitlab/github/anthropic/etc via their status-page APIs
     message-other-session/ # hand off a settled decision to a concurrent session before it redoes the work
     plan/                # code-anchored implementation plan, bridging shaping decisions to build
-    start-issue/         # bare issue link → branch/worktree, In Progress, build, PR, In Review (trackers/ per host)
-    start-milestone/     # whole milestone → order by verification cost, run start-issue per issue, sequence the merges
+    start-issue/         # bare issue link → branch/worktree, In Progress, build, PR, In Review (trackers/ per host, trunk.md)
+    start-milestone/     # whole milestone → order by verification cost, run start-issue per issue, sequence the merges (trunk-checked)
   hooks/
     hooks.json           # SessionStart/PreToolUse/PostToolUse wiring (paths via ${CLAUDE_PLUGIN_ROOT})
     guard-skill-deletion.sh          # PreToolUse(Bash) — stub, see Hooks below
