@@ -13,11 +13,19 @@ is a claim about the *PR*, and a PR can be merged into something that is not the
 ```bash
 TRUNK=$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null | sed 's@origin/@@' || echo main)
 git -C "$WT" fetch -q origin
-git -C "$WT" branch -r --contains "$(git -C "$WT" rev-parse HEAD)" | grep -q "origin/$TRUNK"
+git -C "$WT" merge-base --is-ancestor HEAD "origin/$TRUNK"    # exit 0 = the trunk has it
 ```
 
 The fetch is not optional — a local `origin/main` two commits stale answers for a trunk
 that no longer exists.
+
+**Ask git, do not grep git's output.** The obvious form —
+`git branch -r --contains <sha> | grep -q "origin/$TRUNK"` — matches on substring, so any
+sibling ref whose name starts with the trunk's (`origin/main-experiment`, `origin/mainline`,
+an upstream fork's `origin/main`) satisfies the grep and the check passes while the trunk
+has none of the work. Measured on the repro in this repo's history: with the child pushed to
+`main-experiment`, the grep form reports the trunk contains it and `--is-ancestor` fires.
+Fails open, in the direction that looks like success — the same defect this file is about.
 
 ## What is not evidence
 

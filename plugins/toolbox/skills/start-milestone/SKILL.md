@@ -114,7 +114,7 @@ moving on to the next:
 
 ```bash
 git -C <wt> fetch -q origin
-git -C <wt> branch -r --contains "$(git -C <wt> rev-parse HEAD)" | grep -q "origin/<default>"
+git -C <wt> merge-base --is-ancestor HEAD "origin/<default>"   # exit 0 = the trunk has it
 ```
 
 A PR reporting `MERGED` merged into *its base*, which in a batch is not always the trunk.
