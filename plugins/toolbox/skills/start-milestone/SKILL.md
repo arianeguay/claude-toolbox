@@ -108,13 +108,30 @@ not work — each merge moves the base again.
 **Prove the rebase, do not assume it.** Two changes that both apply cleanly can still
 disagree; the test run after the rebase is the only thing that says otherwise.
 
+**Prove the merge too.** This is the one place in the toolbox that observes a merge, so it
+owns the assertion — run the check in `../start-issue/trunk.md` after each merge, before
+moving on to the next:
+
+```bash
+git -C <wt> fetch -q origin
+git -C <wt> branch -r --contains "$(git -C <wt> rev-parse HEAD)" | grep -q "origin/<default>"
+```
+
+A PR reporting `MERGED` merged into *its base*, which in a batch is not always the trunk.
+Failing it stops the sequence — the next rebase would be onto a trunk that is missing the
+work you just merged, and the drop would look like a clean rebase. The recovery is in
+`trunk.md`; it is a cherry-pick onto the trunk, never a force-push of the merged branch.
+
 Delete the worktree before the branch — `git branch -D` refuses a branch a worktree holds,
 and the error arrives after the merge has already happened, which reads like a failed merge.
 
 ## Step 5 — Close the set
 
-Move every issue to its done state, then run `toolbox:adhd-summary` **once for the
-milestone**, not once per issue. The verdict the user needs is about the batch: what
+Move every issue to its done state — **only the ones Step 4 saw land on the trunk.** An
+issue whose commits are not on the trunk is not done however its PR reads; leave it where
+it is, name it in the summary, and carry the recovery there.
+
+Then run `toolbox:adhd-summary` **once for the milestone**, not once per issue. The verdict the user needs is about the batch: what
 merged, what still needs them, what got filed.
 
 If anything was left undone, say which and why, in the summary — a milestone reported as

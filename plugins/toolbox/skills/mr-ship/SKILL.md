@@ -152,6 +152,13 @@ glab mr view "$BRANCH" -F json | jq -r '[(.title|startswith("Draft:")), .web_url
 - Still draft → `⏸ Validation passed — still in Draft. Flip it when you're ready: {url}`
 - Already out of draft → `✅ Validation passed — already ready for review`
 
+**Name the base when it isn't the trunk.** This pipeline ends at a PR, never at a merge, so
+it cannot confirm a merge landed — but `BASE` from Step 0 is already the fact that decides
+whether one can. If `BASE` is not the remote default branch, add a line: merging this PR
+puts the work on `{BASE}`, not on the trunk, and it must be retargeted (`gh pr edit <n>
+--base <trunk>`) once its base merges. The reasoning and the recovery are in
+`../start-issue/trunk.md`; do not restate them here.
+
 Only strip the draft prefix / pass `--ready` if the user asks for it **in the same turn** ("and flip it ready"). Otherwise leave it alone.
 
 ---
