@@ -55,6 +55,14 @@ Two shapes, and the adapter says which one applies:
 
 Every task gets its own worktree — never branch-switch the main checkout.
 
+### When the issue's premise lives in an unmerged PR
+
+Cut the worktree from that PR's branch — you need its code to build on. But **open the PR against the trunk anyway**, and say the diff carries the base PR's commits until the base merges.
+
+The alternative, basing the PR on the parent branch, is a stacked PR, and it fails in the direction that looks like success: when the base merges first, the child merges into a dead end, reports `MERGED`, and the trunk gets none of the work. See `trunk.md`. The stacked diff is cleaner to review; the failure is silent. Take the noise.
+
+If a stacked base is chosen anyway — the base is huge, the reviewer asked for it — that is a decision, not a default, and it carries two obligations: retarget the child to the trunk the moment the base merges (`gh pr edit <n> --base <trunk>`), and Step 8 reports the base rather than staying quiet about it.
+
 **The worktree holds the files, not the session.** Do not move the session's cwd into it — no `EnterWorktree`, no `cd`. Sessions are keyed by cwd, so a session that entered a worktree is filed under that path: `claude --resume` from the main checkout will not list it, which after a crash is indistinguishable from a session that never existed, and removing the worktree strands it for good.
 
 So address the worktree explicitly for the rest of the flow — `git -C <path>`, `make -C <path>`, absolute paths for every read and write. Set `WT=$(pwd)/.claude/worktrees/<branch>` once and use it. A bare `git` command now lands on the trunk, so confirm the worktree before the first edit, and never on `pwd`:
@@ -113,15 +121,26 @@ Adapter step. Set the in-review state and link the PR/MR back on the issue — t
 
 ## Step 8 — Report
 
-Five lines, no recap prose:
+Six lines, no recap prose:
 
 ```
 <KEY> <title>
 branch    <branch>  (worktree <path>)
+base      <base>  [not the trunk — see below]
 verdict   simple | complex — <deciding criterion>
 PR        <url>
 state     In Review
 ```
+
+`base` is read back from the PR, not from what Step 2 intended:
+
+```bash
+gh pr view <n> --json baseRefName -q .baseRefName    # glab mr view <n> -F json | jq -r .target_branch
+```
+
+Base is not the trunk → say that merging this PR will not put the work on the trunk, and name the retarget. Do not report `state In Review` as if the flow were clean; the stack is the finding.
+
+**If a merge happened while this flow was running** — the user merged the PR mid-session, or the flow ran under `start-milestone` — run the check in `trunk.md` before reporting anything as shipped, and report its verdict. A PR URL is evidence that a PR exists; it is not evidence that the trunk has the work.
 
 Then run `toolbox:issues-candidate` if the build surfaced anything worth filing.
 
@@ -129,4 +148,4 @@ Then run `toolbox:issues-candidate` if the build surfaced anything worth filing.
 
 ## Failure handling
 
-Any step failing stops the flow and says which step and why — never continue to the next state transition on a failed one. Specifically: don't mark In Review without a PR URL, and don't mark In Progress without a branch.
+Any step failing stops the flow and says which step and why — never continue to the next state transition on a failed one. Specifically: don't mark In Review without a PR URL, don't mark In Progress without a branch, and don't report a shipped state without the trunk check in `trunk.md`.
