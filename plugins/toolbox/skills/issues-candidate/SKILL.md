@@ -78,6 +78,10 @@ Cap the proposal at **~6 candidates**. More than that means the bar was too low 
 
 ## Step 4 — Draft each survivor
 
+**First: does this environment already own issue drafting?** Check the available-skills list for a project- or user-level issue-creation skill (e.g. `linear-issue-creator`, `file-bug`, a repo's own `new-ticket`). If one exists, **it owns the title, the body shape and the provenance footer** — draft through it rather than with the template below, and pass it the Title / Type / Priority / Estimate / Evidence / Relations / Labels you worked out here. Those skills encode team conventions this one can't know: forbidden sections, required label groups, tone, the house body headings. Reinventing the body next to a skill that already defines it is how two ticket formats end up in one backlog.
+
+Nothing like that installed → draft with the template below, and end each body with the footer in Step 6.
+
 Per candidate, work out and record:
 
 - **Title** — imperative, names the observable problem, not the fix's shape
@@ -133,13 +137,22 @@ Always print the **Not filing** section, even when empty — it shows the filter
 
 ## Step 6 — Execute
 
-**6A — File `📋`:** create each via the tracker *(see tracker file)* with every field from Step 4 — title, body, type/labels, priority, estimate, relations. An issue missing priority, estimate or labels is incomplete; fill them at creation, don't defer.
+**6A — File `📋`:** if Step 4 found an issue-creation skill, hand each candidate to it and let it file — don't duplicate the create call. Otherwise create each via the tracker *(see tracker file)* with every field from Step 4 — title, body, type/labels, priority, estimate, relations. An issue missing priority, estimate or labels is incomplete; fill them at creation, don't defer.
 
 **6B — Apply `🔧`:** make the fix, run the repo's checks on touched files, report.
 
 **6C — Resolve `❓`:** ask the user the one question that decides it, then treat as `📋` or `🗑️`.
 
 **6D — Cross-reference:** if a filed issue corresponds to a `TODO`/`FIXME` in the diff, edit the comment to carry the issue key. A TODO without a key is what this skill exists to stop.
+
+**6F — Sign what you post.** End every body and comment this skill writes itself — a 6A issue drafted from Step 4's template, a 6E closing comment, a Step 7 copy-paste block — with this footer, verbatim as the last line:
+
+```markdown
+
+<sub>🤖 Drafted with <code>/issues-candidate</code></sub>
+```
+
+The row is authored by whoever owns the tracker token, normally the human who approved the triage table, and that is correct: the *decision* to file is theirs. The footer adds the half a later reader needs — that the prose was machine-drafted — so nobody has to guess whether a terse body was considered or auto-generated. Fixed string, never reworded per issue; that is what makes it skimmable and greppable across a backlog. When Step 4 delegated to an issue-creation skill, **that** skill's footer applies instead — don't stack two.
 
 **6E — Close an existing issue (only if the session actually answered it):** post the evidence as a comment first, quoting the issue's acceptance criteria and answering each one explicitly — including "not addressed". Writing that comment is what exposes a criterion with no evidence behind it. Only then set the state, and only if every criterion is met. A finding that came out of the same investigation is not automatically the finding the issue asked for; adjacent evidence closes nothing. Partial evidence means the comment stands and the issue stays open.
 

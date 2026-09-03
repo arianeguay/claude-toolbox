@@ -36,7 +36,9 @@ Read the full issue: title, description, labels, state, estimate, priority, rela
 
 **Backfill before building.** If the user's `CLAUDE.md`/`PROFILE.md` defines an issue standard (title form, description sections, required labels, estimate, priority), bring the issue up to it now, in one save, without asking. No standard defined → skip this, don't invent one.
 
-**Re-scope a stale issue.** If part of it already shipped, rewrite the description down to what actually remains and say the scope changed. Never implement a spec the codebase outgrew.
+**Draft rewrites through the environment's issue skill.** Both the backfill above and the re-scope below rewrite the issue's body, so they answer to whatever already owns issue prose here: check the available-skills list for a project- or user-level issue-creation skill (e.g. `linear-issue-creator`, a repo's own `new-ticket`) and let it shape the description — headings, forbidden sections, tone, and its provenance footer. It encodes team conventions this skill cannot know. None installed → follow the `CLAUDE.md` standard directly and end the body with `<sub>🤖 Rewritten with <code>/start-issue</code></sub>`, so a later reader can tell machine-drafted scope from the reporter's own words.
+
+**Re-scope a stale issue.** If part of it already shipped, rewrite the description down to what actually remains and say the scope changed. Never implement a spec the codebase outgrew. Keep the reporter's framing where it still holds — a re-scope trims what shipped, it does not relitigate why the issue exists.
 
 ## Step 2 — Branch and worktree
 
