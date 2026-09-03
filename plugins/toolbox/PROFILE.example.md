@@ -3,8 +3,19 @@
 Per-project settings the toolbox skills read. Copy to `PROFILE.md` in the repo you're
 working in (or to `~/.claude/PROFILE.md` for machine-wide defaults) and fill it in.
 
-`PROFILE.md` is gitignored by this repo — keep the filled-in copy out of version control
-if it names internal hosts, ticket prefixes, or anything else you don't want published.
+**Keep the filled-in copy out of version control.** Use `.git/info/exclude` in the
+consuming repo, not `.gitignore` — `.gitignore` is itself committed, so adding `PROFILE.md`
+to it publishes the fact that the file exists and invites someone to commit theirs. Add the
+line to `.git/info/exclude` instead, which is local to your clone and never pushed:
+
+```bash
+echo 'PROFILE.md' >> "$(git rev-parse --git-dir)/info/exclude"
+```
+
+This matters on a shared or public repo: the file names internal hosts, ticket prefixes and
+branch conventions. It is per-developer config, not project config — a teammate who wants
+the same behaviour writes their own, or the values stay in whatever tooling the team
+already shares.
 
 Every field is optional. A skill that can't find its field falls back to detection, or
 skips the step and says so — it never guesses.
@@ -19,7 +30,20 @@ TRACKER=github             # github | gitlab | linear | jira | none
 ```
 
 Read by: `plan` (extract the ticket id from the branch), `mechanical-checks` (accept
-`ABC-1234` as a valid TODO reference), `issues-candidate` (where to file follow-ups).
+`ABC-1234` as a valid TODO reference), `issues-candidate` (where to file follow-ups),
+`create-or-update-mr` (narrow the branch-name match to this repo's tracker, so a branch
+whose title happens to contain another `XX-123` can't yield the wrong key).
+
+## Branches
+
+```
+PRODUCTION_BRANCH=         # e.g. master — what hotfix/* targets
+```
+
+Read by: `create-or-update-mr`. The *default* target needs no key: it comes from
+`origin/HEAD`, which already resolves to a non-`main` trunk (e.g. `origin/develop`)
+without configuration. Set this only when `hotfix/*` should target something other than
+`master`, or `master` doesn't exist on the remote.
 
 ## Shaping
 

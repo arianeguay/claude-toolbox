@@ -23,15 +23,28 @@ Generate or update a professional PR/MR title + description from the branch diff
 
 ```bash
 BRANCH=$(git branch --show-current)
-# Default base = the remote's default branch; hotfix/* targets the production branch if the repo has one.
+ROOT=$(git rev-parse --show-toplevel)
+# PROFILE.md supplies per-project values; repo root wins over the machine-wide copy.
+# Every key is optional — an unset key falls back to detection, never to a guess.
+prof() { sed -n "s/^$1=//p" "$ROOT/PROFILE.md" ~/.claude/PROFILE.md 2>/dev/null | grep . | head -1; }
+
+# Base = the remote's default branch. This already resolves correctly on repos
+# whose trunk isn't `main` (origin/HEAD -> origin/develop), so no key is needed
+# for the common case.
 DEFAULT=$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null | sed 's@origin/@@' || echo main)
+# hotfix/* targets the production branch: PRODUCTION_BRANCH if set, else master
+# if it exists on the remote, else the default.
+PROD=$(prof PRODUCTION_BRANCH)
 case "$BRANCH" in
-  hotfix/*) TARGET=$(git show-ref --verify -q refs/remotes/origin/master && echo master || echo "$DEFAULT") ;;
+  hotfix/*) TARGET=${PROD:-$(git show-ref --verify -q refs/remotes/origin/master && echo master || echo "$DEFAULT")} ;;
   *)        TARGET="$DEFAULT" ;;
 esac
 git rev-parse --abbrev-ref @{upstream} 2>/dev/null || echo "NOT_PUSHED"
 BASE=$(git merge-base HEAD "origin/$TARGET")
-TICKET=$(echo "$BRANCH" | grep -oiE '[A-Z]+-[0-9]+' | head -1 | tr '[:lower:]' '[:upper:]')   # adjust to the repo's tracker
+# TICKET_PREFIX narrows the match to the repo's own tracker, so a branch like
+# feature/gra-3233-... can't yield a key from some other prefix in the name.
+PREFIX=$(prof TICKET_PREFIX)
+TICKET=$(echo "$BRANCH" | grep -oiE "${PREFIX:-[A-Z]+}-[0-9]+" | head -1 | tr '[:lower:]' '[:upper:]')
 # Overview first. Exclude lockfiles/snapshots/generated files so the diff stays readable.
 git diff --stat "$BASE"..HEAD -- . ':(exclude)*lock*' ':(exclude)*.snap'
 git log --oneline "$BASE"..HEAD
