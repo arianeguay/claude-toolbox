@@ -117,6 +117,11 @@ found and left alone, a gap the change exposes. Each gets a title they'd recogni
 one line of why. **Do not file them here** — offer `toolbox:issues-candidate`, which has the
 tracker metadata and the approval flow.
 
+Before listing an item, check it is still open. Something fixed live during this same
+session — a config edited on a remote host, a follow-up applied while gathering context —
+is not a follow-up; it belongs in the two-line summary or nowhere, never in FILE THESE
+worded as both done and pending in the same breath.
+
 Everything else — refactors done, tests added, files touched, options weighed, things that
 went fine — is skipped. It goes in the count, not on the page.
 
