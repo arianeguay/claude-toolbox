@@ -27,7 +27,7 @@ plugins/toolbox/       # the plugin itself — what `source: "./plugins/toolbox"
     context-validator/   # judgment-level pre-review: scope + code-path analysis, then a precise human action list
     comment-audit/       # audit changed-file comments (noise/stale/missing/over-doc) before merge
     merge-parent/        # merge the parent/default branch into current, w/ mechanical anti-drop check on conflicts
-    mr-description/      # generate/update a PR/MR title + description from the diff (gh/glab)
+    create-or-update-mr/ # draft/update a PR/MR title + description, then push and open it (gh/glab)
     review-comments-resolver/ # resolve human + bot (CodeRabbit/Bugbot) review comments (gh/glab)
     mr-ship/             # orchestrator: the pre-review pipeline at three depths (full/medium/short)
     uniformity-check/    # check a diff for drift vs the codebase (per-stack baselines in stacks/)

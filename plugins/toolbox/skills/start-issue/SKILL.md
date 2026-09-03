@@ -113,7 +113,7 @@ Scope discipline: every changed line traces to the issue. Findings outside it go
 toolbox:mr-ship        # full for a complex issue, short for a simple one
 ```
 
-That runs the mechanical checks, the diff hygiene pass and `toolbox:mr-description`, then pushes and opens the PR/MR. The description **must** reference the issue key so the tracker links them.
+That runs the mechanical checks, the diff hygiene pass and `toolbox:create-or-update-mr`, then pushes and opens the PR/MR. The description **must** reference the issue key so the tracker links them.
 
 Skill missing → push and open the PR by hand (`gh pr create` / `glab mr create`) with the key in the body.
 

@@ -1,7 +1,7 @@
 ---
-name: mr-description
+name: create-or-update-mr
 model: haiku
-description: Generate or update a clean PR/MR title and description from the branch diff, then push after validation. Triggers - "describe MR/PR", "write a PR description", "prepare the merge request", "update the MR", or before pushing a branch for review.
+description: Draft or update a PR/MR title and description from the branch diff, then push and open it after validation. Triggers - "create an MR/PR", "open a merge request", "describe MR/PR", "write a PR description", "prepare the merge request", "update the MR", or before pushing a branch for review.
 ---
 
 # PR/MR Description
@@ -144,7 +144,7 @@ Upload the same way as a screenshot (Step 3.5.5 above) — the GitLab uploads en
 ## Screenshots
 [Always present.]
 
-<sub>🤖 Drafted with <code>/mr-description</code></sub>
+<sub>🤖 Drafted with <code>/create-or-update-mr</code></sub>
 ```
 
 **The footer is part of the template, not optional.** The MR is authored by whoever owns the host token — the person who approved the description in Step 5 — and that authorship is right, because the *decision* to open it is theirs. The footer supplies the half a reviewer needs: that the prose was machine-drafted, so a confident-sounding "Decisions" section is read as a claim to check rather than a considered account. Fixed string, never reworded per MR. On an **update**, if the existing description already carries it, don't add a second one.

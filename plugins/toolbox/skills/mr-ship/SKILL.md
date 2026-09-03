@@ -55,7 +55,7 @@ Suggest, never gate. If the user named a mode, do not second-guess it.
 | 7 | Context validation | `toolbox:context-validator` | ⏭ | ⏭ | ✅ | only if user reports an issue |
 | 8 | Deep code review | *(see Step 8)* | ⏭ | ⏭ | ✅ | never (accumulates) |
 | 9 | Clean history | `toolbox:git-clean-history` | ✅ | ✅ | ✅ | never (presents options) |
-| 10 | PR/MR description | `toolbox:mr-description` | ✅ | ✅ | ✅ | runs automatically |
+| 10 | PR/MR description | `toolbox:create-or-update-mr` | ✅ | ✅ | ✅ | runs automatically |
 | 11 | Draft state report | — | ✅ | ✅ | ✅ | never |
 
 Three deliberate choices:
@@ -135,7 +135,7 @@ Invoke `toolbox:git-clean-history`. Flags WIP/fixup/debug commits and non-conven
 > Its rewrite scope is `merge-base(HEAD, origin/$BASE)..HEAD` — the whole branch, not `@{upstream}..HEAD`. A scope limited to unpushed commits makes the audit look clean on a branch that isn't.
 
 ## Step 10 — PR/MR description — *all modes*
-Invoke `toolbox:mr-description`. Generates/updates the title + description from the final diff and pushes after preview.
+Invoke `toolbox:create-or-update-mr`. Generates/updates the title + description from the final diff and pushes after preview.
 
 In **short** mode, skip the regeneration when nothing new surfaced (only fixes/polish since the last description) → `⏭ Skipped — description up to date`. Judge from the diff surfaces, not from commit-message conventions.
 
