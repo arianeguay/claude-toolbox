@@ -101,7 +101,7 @@ Summary + `Default if you say "go": fix ✅, file 📋 in the tracker, dismiss �
 ## Step 6 — Execute
 
 **6A — Fix `✅`:** read the code (inline → file/line; general → infer the area, search if needed), apply the fix per repo conventions, report each.
-**6B — `📋` tracker issues:** create via the tracker's CLI/MCP if available, else output a copy-paste-ready issue (title, finding, file:line, source, one-paragraph analysis, label).
+**6B — `📋` tracker issues:** create via the tracker's CLI/MCP if available, else output a copy-paste-ready issue (title, finding, file:line, source, one-paragraph analysis, label). End the issue body with the same footer Step 8C defines, so a filed issue carries its provenance as visibly as a thread reply does.
 **6C — `❓` clarify:** draft a non-adversarial question ("I read this as X because [code reason] — was your intent X or Y? Happy to do either."). Show the user; they choose **send as-is** / **edit + send** / **override→fix** / **override→dismiss**. Post as a thread reply; **do not resolve** (keep open for the reply). Never silently dismiss a `❓`.
 
 ---
@@ -120,6 +120,17 @@ Run the repo's own checks on touched files (detect: `npm run check`/`type-check`
 - Tracker — "Deferred to {ISSUE}: out of scope for this PR/MR — {what the fix involves}."
 
 **8B — resolve** every processed thread (`✅` fixed, `🗑️` triaged+commented, `📋` captured+commented), across all sources. **Do NOT resolve `❓ Clarify` threads** — they stay open for the reviewer's reply. Don't resolve threads not processed this session.
+
+**8C — sign every posted reply.** Append this footer, verbatim, as the last line of each thread reply (8A dismissals, 8B tracker notes, and 6C clarify questions alike):
+
+```markdown
+
+<sub>🤖 Triaged with <code>/review-comments-resolver</code></sub>
+```
+
+The note is authored by whoever owns the host token — normally the human running this skill, since they approved the triage in Step 5. That authorship is correct and worth keeping: the *decision* is theirs. The footer supplies the other half a reviewer needs — that the prose was machine-drafted — so nobody has to guess whether a dismissal was considered or auto-generated. Don't drop it to save a line, and don't reword it per reply; a fixed string is what makes it skimmable and greppable across an MR.
+
+Do **not** substitute a bot identity for the footer unless the user explicitly asks. Posting as a separate bot account (a GitLab group/project access token, a GitHub App) moves authorship off the person who approved each call, which reads as "a bot decided this" and is less true. If the user does want that, it is a token swap, not a skill change: scope the alternate token to the reply/resolve calls only (`GITLAB_TOKEN=$BOT_TOKEN glab api …`) so PR/MR creation stays under their own identity, and keep the secret out of committed config — a keychain entry read at call time, never `settings.json` env.
 
 Report: `Resolved {N} thread(s) ({X} CodeRabbit, {Y} Bugbot, {Z} human).`
 
