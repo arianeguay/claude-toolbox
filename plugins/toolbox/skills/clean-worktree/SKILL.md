@@ -78,18 +78,7 @@ git merge-base --is-ancestor <branch> "origin/$TRUNK" && echo REACHED || echo NO
     ```
     Point at the cherry-pick recovery in `trunk.md` (fresh branch off `origin/$TRUNK`, `git cherry-pick` the missing commits oldest-first, open a new PR — never force-push the stranded branch itself). Never offer it for deletion.
 
-**Squash-merge fallback (branches NOT `[gone]`).** `[gone]` only fires when the remote deletes the source branch on merge. A branch squash-merged with "delete branch on merge" OFF keeps a live remote and never flips to `[gone]`, so the check above skips it. Do NOT rely on `git branch --merged` or `git cherry` to catch these — squash collapses N commits into one new patch-id, so both report the branch as fully unmerged. Use the same tree-level check as above:
-
-```bash
-# (a) branch tip content already fully in the trunk (nothing the branch adds is missing):
-git diff "origin/$TRUNK"..<branch> --quiet && echo MERGED   # empty diff → merged
-# (b) or the branch's squash commit is present in the trunk's history (match by ticket id):
-git log "origin/$TRUNK" --oneline --grep='STU-XXX' | head    # non-empty → merged
-```
-
-(a) can read DIFF when the trunk has simply moved *ahead* of the merge — later commits re-touching the same files. In that case (b) is authoritative: if the squash commit is in `origin/$TRUNK`, the branch is merged regardless of drift. Present these under the same preview group (label them "merged, remote not deleted") so the single confirmation covers them too.
-
-**Tip check (all routes) — commits after the merge.** A branch can receive commits AFTER its PR merges — someone pushes one more commit post-merge. The merge signal above (`[gone]`+ancestor, or the squash-merge fallback) still fires, but those trailing commits were never in any PR, and with "delete branch on merge" on, the remote is already gone by the time they're pushed — the local branch is their last copy. Before finalizing any merged candidate, when a host CLI is available:
+**Branches without `[gone]` — ask the host, don't grep commit messages.** `[gone]` only fires when the remote deletes the source branch on merge. A branch squash-merged with "delete branch on merge" OFF keeps a live remote and never flips to `[gone]`, so the check above skips it — and if the remote *never* deletes source branches, `[gone]` finds nothing at all even though every branch is merged. Do NOT rely on `git branch --merged` or `git cherry` here either — squash collapses N commits into one new patch-id, so both report the branch as fully unmerged. When a host CLI is available, ask it directly instead of guessing from the tree:
 
 ```bash
 REMOTE=$(git remote get-url origin 2>/dev/null)
@@ -99,11 +88,25 @@ case "$REMOTE" in
   *)        CLI=      ;;
 esac
 
-# one call for the whole repo:
+# one call for the whole repo — also drives the tip check below:
 gh pr list --state all --limit 1000 --json number,state,headRefName,mergedAt,headRefOid
 ```
 
-Match each candidate branch to its `headRefName`, then compare the recorded `headRefOid` to the branch's current tip:
+Match each non-`[gone]` local branch to `headRefName`:
+
+- `state == MERGED` → run it through the **same gates as the `[gone]` route**: the `--is-ancestor` trunk check, the tree-diff disambiguation if that fails, and the tip check below. Reuse the gates — finding the branch a different way doesn't excuse skipping them.
+- `state == CLOSED` (never merged), or no matching PR at all → **not a candidate.** List it in its own **"no merged PR found"** group; never offer it for deletion.
+
+**No host CLI available — last resort only.** Without `gh`/`glab` there is no direct PR-state signal, so fall back to the tree-level check. State its weakness where it's used, not only in this skill's Notes: once the trunk has moved ahead at all, `git diff "origin/$TRUNK"..<branch> --quiet` reads DIFF (non-empty) for basically every branch — on its own it answers "did anything change since", not "was this merged".
+
+```bash
+git diff "origin/$TRUNK"..<branch> --quiet && echo MERGED_UNVERIFIED || echo UNKNOWN
+```
+
+- empty diff → a **weak** merged candidate. Label it "merged, remote not deleted (unverified — no host CLI)" in the preview so the operator knows this wasn't confirmed against a PR.
+- non-empty diff → **do not assume unmerged, and do not drop it silently.** List the branch in a **"could not classify (no host CLI)"** group instead. An empty preview here reads as "nothing to clean" when the truth is "the tool couldn't tell" — that gap is the failure this replaces.
+
+**Tip check (all routes) — commits after the merge.** A branch can receive commits AFTER its PR merges — someone pushes one more commit post-merge. The merge signal above (`[gone]`+ancestor, or the `gh pr list` sweep) still fires, but those trailing commits were never in any PR, and with "delete branch on merge" on, the remote is already gone by the time they're pushed — the local branch is their last copy. Before finalizing any merged candidate, when `$CLI` is set, reuse the `gh pr list` result above (or run it now if this candidate came from the `[gone]` route and it hasn't run yet). Match the candidate branch to its `headRefName`, then compare the recorded `headRefOid` to the branch's current tip:
 
 ```bash
 git rev-parse <branch>   # or origin/<branch> if the remote copy is still live
@@ -131,7 +134,7 @@ Show grouped lists with the last commit subject per branch so the user can sanit
 Worktrees to remove (merged, remote gone):
   .worktrees/feature-login-rework  feature-login-rework  "test(auth): cover token refresh edge cases…"
 Branches to delete (merged, no worktree):
-  (none)
+  stu-1091-cache-warm-job  "fix(cache): warm on boot…"  (PR #301, remote not deleted)
 backup/* branches to delete:
   backup/feature-search-20260601-163329  "fix(search): debounce query input…"
 Dangling worktree records to prune:
@@ -145,6 +148,12 @@ NOT on the trunk — recovery needed (never deletable):
 Commits after the merge (never deletable):
   stu-1100-measure-review-distance   1 commit after PR #327 merged — open a new PR for it
 
+No merged PR found (never deletable):
+  stu-1188-abandoned-spike   no PR, or PR was closed without merging
+
+Could not classify — no host CLI (never deletable):
+  stu-1099-old-experiment   tree diff is not a merged/unmerged signal once main has moved
+
 Skipped (dirty — left untouched):
   .worktrees/feature-export  (3 uncommitted files)
 
@@ -155,7 +164,7 @@ The "NOT on the trunk" group (and any other never-deletable group) is informatio
 
 ### 4. Execute (only after approval)
 
-**Never execute against a never-deletable group** — "not on the trunk — recovery", "commits after the merge", and any group added by later steps of this procedure. Those are shown so the operator can act on them separately (cherry-pick, new PR); they are never part of what the y/N confirms.
+**Never execute against a never-deletable group** — "not on the trunk — recovery", "commits after the merge", "no merged PR found", "could not classify", and any group added by later steps of this procedure. Those are shown so the operator can act on them separately (cherry-pick, new PR, manual check); they are never part of what the y/N confirms.
 
 ```bash
 # Worktrees: remove the worktree, then force-delete its now-detached branch
@@ -191,6 +200,9 @@ Print what was removed and what was skipped (and why). Re-run `git worktree list
 | Treating every `[gone]` branch as "merged to the trunk" | `[gone]` fires on a merge into ANY base, including a dead intermediate branch (stacked PRs). Gate on `git merge-base --is-ancestor <branch> "origin/$TRUNK"` first. |
 | Force-deleting a `[gone]` branch that fails `--is-ancestor` without checking the tree diff | That check alone doesn't distinguish squash-merged (safe) from stranded (not). Disambiguate with `git diff "origin/$TRUNK"..<branch> --quiet` before deciding. |
 | Deleting a merged branch without checking its tip against the PR's `headRefOid` | A branch can gain commits after its own PR merges. Compare `git rev-parse <branch>` to `gh pr list --json headRefOid` (matched by `headRefName`) before deleting — trailing commits are the last copy once the remote is gone. |
+| Matching a ticket id against trunk commit messages (`git log --grep`) to find merged branches | Matches any commit whose body mentions the ticket, not just the one that landed it — wrong, not just weak, in a repo whose commits cross-reference other tickets. Ask the host (`gh pr list --state all`) instead. |
+| Reading `git diff "origin/$TRUNK"..<branch>` as DIFF = "not merged" | It reads DIFF for nearly every branch once the trunk has simply moved ahead. It's a "did anything change" signal, not a merged/unmerged one — use it only when no host CLI exists, and say so in the preview. |
+| An empty "merged" preview under a remote that doesn't delete branches on merge | Reads as "nothing to clean" when it may mean "`[gone]` never fires here." Sweep with `gh pr list --state all` before concluding there's nothing to do. |
 | Skipping `git fetch --prune` | Without it upstreams never flip to `[gone]` and nothing is detected. |
 | `git worktree remove --force` on dirty trees | Never. Exclude dirty worktrees and warn; the user decides manually. |
 | Deleting `gitbutler/workspace` or `backup/*` you didn't list | Hard guards. `gitbutler/*` is internal; only delete `backup/*` when shown in preview. |
@@ -201,4 +213,4 @@ Print what was removed and what was skipped (and why). Re-run `git worktree list
 ## Notes
 
 - A `[gone]` upstream means *the source branch was deleted on some merge* — not necessarily a merge into the trunk (see the stacked-PR gate above), and in rare cases not a merge at all. The preview (branch name + last commit, or the recovery group) is the human check; that's why this skill never runs fully unattended.
-- Works from any repo — a generic git worktree cleaner for the squash-merge + `.worktrees/<branch>` workflow. If your remote doesn't delete source branches on merge, `[gone]` never appears and nothing is detected — enable "delete branch on merge" (or delete the remote branch yourself) for this to work.
+- Works from any repo — a generic git worktree cleaner for the squash-merge + `.worktrees/<branch>` workflow. If your remote doesn't delete source branches on merge, `[gone]` never appears — that's expected, not a dead end: the `gh pr list --state all` sweep for non-`[gone]` branches is what finds those. It needs a host CLI; without one, the tree-diff fallback is weak and unclassifiable branches are reported rather than silently dropped.
