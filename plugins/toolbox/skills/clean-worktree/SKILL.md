@@ -75,7 +75,7 @@ gh pr list --state all --limit 1000 --json number,state,headRefName,mergedAt,hea
 
 Match by `headRefName`. A branch with a `MERGED` PR gets a `headRefOid` from this — use it, not the branch's live tip, for the gates below. No host CLI, or no matching PR → there's no `headRefOid`; the gates fall back to the branch's own tip, with the caveat noted at each step.
 
-**`[gone]` is not "merged to the trunk".** GitHub/GitLab delete the source branch on ANY merge — including a merge into a now-dead intermediate base branch (a stacked-PR shape: branch B merges into branch A, and A is itself already merged, or never merges at all). Treating `[gone]` alone as "merged" force-deletes the last copy of a stranded branch. Gate every `[gone]` branch on the trunk before calling it a candidate, reusing the check `plugins/toolbox/skills/start-issue/trunk.md` already owns ("Did the work reach the trunk?" — a merge is a claim about the trunk's history, and only the trunk's history answers it). Run it against `headRefOid` from the PR lookup when one was found, **not** the branch's live tip — a branch with a trailing post-merge commit (see the tip check below) has a tip that was never in any PR, and checking that tip directly would read the trailing commit as part of the merge and misclassify "merged, plus one unlanded commit" as fully stranded:
+**`[gone]` is not "merged to the trunk".** GitHub/GitLab delete the source branch on ANY merge — including a merge into a now-dead intermediate base branch (a stacked-PR shape: branch B merges into branch A, and A is itself already merged, or never merges at all). Treating `[gone]` alone as "merged" force-deletes the last copy of a stranded branch. Gate every `[gone]` branch on the trunk before calling it a candidate, reusing the check `../start-issue/trunk.md` already owns ("Did the work reach the trunk?" — a merge is a claim about the trunk's history, and only the trunk's history answers it). Run it against `headRefOid` from the PR lookup when one was found, **not** the branch's live tip — a branch with a trailing post-merge commit (see the tip check below) has a tip that was never in any PR, and checking that tip directly would read the trailing commit as part of the merge and misclassify "merged, plus one unlanded commit" as fully stranded:
 
 ```bash
 REF="${HEAD_REF_OID:-<branch>}"     # headRefOid from the PR lookup above, else the branch's own tip
@@ -92,7 +92,7 @@ git merge-base --is-ancestor "$REF" "origin/$TRUNK" && echo REACHED || echo NOT_
     ```bash
     git log --oneline "origin/$TRUNK..$REF"    # the commits the trunk is missing
     ```
-    Point at the cherry-pick recovery in `trunk.md` (fresh branch off `origin/$TRUNK`, `git cherry-pick` the missing commits oldest-first, open a new PR — never force-push the stranded branch itself). Never offer it for deletion.
+    Point at the cherry-pick recovery in `../start-issue/trunk.md` (fresh branch off `origin/$TRUNK`, `git cherry-pick` the missing commits oldest-first, open a new PR — never force-push the stranded branch itself). Never offer it for deletion.
 
 **Branches without `[gone]` — ask the host, don't grep commit messages.** `[gone]` only fires when the remote deletes the source branch on merge. A branch squash-merged with "delete branch on merge" OFF keeps a live remote and never flips to `[gone]`, so the check above skips it — and if the remote *never* deletes source branches, `[gone]` finds nothing at all even though every branch is merged. Do NOT rely on `git branch --merged` or `git cherry` here either — squash collapses N commits into one new patch-id, so both report the branch as fully unmerged.
 
@@ -147,7 +147,7 @@ Dangling worktree records to prune:
 NOT on the trunk — recovery needed (never deletable):
   stu-1210-refresh-token-fix   2 commits missing from origin/main
     Recovery: cherry-pick onto origin/main on a fresh branch, open a new PR.
-    See plugins/toolbox/skills/start-issue/trunk.md — do not force-push this branch.
+    See ../start-issue/trunk.md — do not force-push this branch.
 
 Commits after the merge (never deletable):
   stu-1100-measure-review-distance   1 commit after PR #327 merged — open a new PR for it
