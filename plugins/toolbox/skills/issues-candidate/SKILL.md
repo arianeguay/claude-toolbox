@@ -149,10 +149,12 @@ Always print the **Not filing** section, even when empty — it shows the filter
 
 ```markdown
 
-<sub>🤖 Drafted with <code>/issues-candidate</code></sub>
+---
+
+*🤖 Drafted with `/issues-candidate`*
 ```
 
-The row is authored by whoever owns the tracker token, normally the human who approved the triage table, and that is correct: the *decision* to file is theirs. The footer adds the half a later reader needs — that the prose was machine-drafted — so nobody has to guess whether a terse body was considered or auto-generated. Fixed string, never reworded per issue; that is what makes it skimmable and greppable across a backlog. When Step 4 delegated to an issue-creation skill, **that** skill's footer applies instead — don't stack two.
+The row is authored by whoever owns the tracker token, normally the human who approved the triage table, and that is correct: the *decision* to file is theirs. The footer adds the half a later reader needs — that the prose was machine-drafted — so nobody has to guess whether a terse body was considered or auto-generated. Fixed string, never reworded per issue; that is what makes it skimmable and greppable across a backlog. Plain markdown, not HTML: Linear escapes `<sub>`/`<code>` and prints the tags literally. When Step 4 delegated to an issue-creation skill, **that** skill's footer applies instead — don't stack two.
 
 **6E — Close an existing issue (only if the session actually answered it):** post the evidence as a comment first, quoting the issue's acceptance criteria and answering each one explicitly — including "not addressed". Writing that comment is what exposes a criterion with no evidence behind it. Only then set the state, and only if every criterion is met. A finding that came out of the same investigation is not automatically the finding the issue asked for; adjacent evidence closes nothing. Partial evidence means the comment stands and the issue stays open.
 
