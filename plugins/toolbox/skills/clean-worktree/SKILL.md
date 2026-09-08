@@ -89,6 +89,40 @@ git log "origin/$TRUNK" --oneline --grep='STU-XXX' | head    # non-empty → mer
 
 (a) can read DIFF when the trunk has simply moved *ahead* of the merge — later commits re-touching the same files. In that case (b) is authoritative: if the squash commit is in `origin/$TRUNK`, the branch is merged regardless of drift. Present these under the same preview group (label them "merged, remote not deleted") so the single confirmation covers them too.
 
+**Tip check (all routes) — commits after the merge.** A branch can receive commits AFTER its PR merges — someone pushes one more commit post-merge. The merge signal above (`[gone]`+ancestor, or the squash-merge fallback) still fires, but those trailing commits were never in any PR, and with "delete branch on merge" on, the remote is already gone by the time they're pushed — the local branch is their last copy. Before finalizing any merged candidate, when a host CLI is available:
+
+```bash
+REMOTE=$(git remote get-url origin 2>/dev/null)
+case "$REMOTE" in
+  *gitlab*) CLI=glab ;;
+  *github*) CLI=gh   ;;
+  *)        CLI=      ;;
+esac
+
+# one call for the whole repo:
+gh pr list --state all --limit 1000 --json number,state,headRefName,mergedAt,headRefOid
+```
+
+Match each candidate branch to its `headRefName`, then compare the recorded `headRefOid` to the branch's current tip:
+
+```bash
+git rev-parse <branch>   # or origin/<branch> if the remote copy is still live
+```
+
+- tip == `headRefOid` → nothing trailing. Stays a **merged candidate**.
+- tip != `headRefOid` → **not a candidate under the "merged" label.** List it in a new **"commits after the merge"** group instead:
+  ```bash
+  git log --oneline "<headRefOid>..<branch>"     # the trailing commits
+  ```
+  Worth doing before showing the group: diff each trailing commit's added lines against the trunk's current copy of the same file — a line that already landed via a different PR (reworded but present) isn't a real loss; a line that never landed anywhere is:
+  ```bash
+  git diff "<headRefOid>..<branch>" --unified=0 -- <file> | grep '^+[^+]'   # lines the trailing commit(s) add
+  git show "origin/$TRUNK:<file>"                                          # already there? not a real loss
+  ```
+  Say the fix is a new PR for the trailing commits — never offer the branch for deletion in the same batch the operator confirms with one keystroke.
+
+No host CLI available → this check can't run; a merged candidate is presented as-is, tip unverified.
+
 ### 3. Present the preview, then ask ONCE
 
 Show grouped lists with the last commit subject per branch so the user can sanity-check. Example shape:
@@ -108,6 +142,9 @@ NOT on the trunk — recovery needed (never deletable):
     Recovery: cherry-pick onto origin/main on a fresh branch, open a new PR.
     See plugins/toolbox/skills/start-issue/trunk.md — do not force-push this branch.
 
+Commits after the merge (never deletable):
+  stu-1100-measure-review-distance   1 commit after PR #327 merged — open a new PR for it
+
 Skipped (dirty — left untouched):
   .worktrees/feature-export  (3 uncommitted files)
 
@@ -118,7 +155,7 @@ The "NOT on the trunk" group (and any other never-deletable group) is informatio
 
 ### 4. Execute (only after approval)
 
-**Never execute against a never-deletable group** — "not on the trunk — recovery" and any group added by later steps of this procedure. Those are shown so the operator can act on them separately (cherry-pick, new PR); they are never part of what the y/N confirms.
+**Never execute against a never-deletable group** — "not on the trunk — recovery", "commits after the merge", and any group added by later steps of this procedure. Those are shown so the operator can act on them separately (cherry-pick, new PR); they are never part of what the y/N confirms.
 
 ```bash
 # Worktrees: remove the worktree, then force-delete its now-detached branch
@@ -153,6 +190,7 @@ Print what was removed and what was skipped (and why). Re-run `git worktree list
 | `git branch -d` then giving up on "not fully merged" | Use `-D` — the preview/confirm is the safety, not git's merge check. |
 | Treating every `[gone]` branch as "merged to the trunk" | `[gone]` fires on a merge into ANY base, including a dead intermediate branch (stacked PRs). Gate on `git merge-base --is-ancestor <branch> "origin/$TRUNK"` first. |
 | Force-deleting a `[gone]` branch that fails `--is-ancestor` without checking the tree diff | That check alone doesn't distinguish squash-merged (safe) from stranded (not). Disambiguate with `git diff "origin/$TRUNK"..<branch> --quiet` before deciding. |
+| Deleting a merged branch without checking its tip against the PR's `headRefOid` | A branch can gain commits after its own PR merges. Compare `git rev-parse <branch>` to `gh pr list --json headRefOid` (matched by `headRefName`) before deleting — trailing commits are the last copy once the remote is gone. |
 | Skipping `git fetch --prune` | Without it upstreams never flip to `[gone]` and nothing is detected. |
 | `git worktree remove --force` on dirty trees | Never. Exclude dirty worktrees and warn; the user decides manually. |
 | Deleting `gitbutler/workspace` or `backup/*` you didn't list | Hard guards. `gitbutler/*` is internal; only delete `backup/*` when shown in preview. |
