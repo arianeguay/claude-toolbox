@@ -60,25 +60,7 @@ Cross-check each candidate worktree for dirtiness before listing it as removable
 git -C "<worktree-path>" status --porcelain   # non-empty → DIRTY, exclude + warn
 ```
 
-**`[gone]` is not "merged to the trunk".** GitHub/GitLab delete the source branch on ANY merge — including a merge into a now-dead intermediate base branch (a stacked-PR shape: branch B merges into branch A, and A is itself already merged, or never merges at all). Treating `[gone]` alone as "merged" force-deletes the last copy of a stranded branch. Gate every `[gone]` branch on the trunk before calling it a candidate, reusing the check `plugins/toolbox/skills/start-issue/trunk.md` already owns ("Did the work reach the trunk?" — a merge is a claim about the trunk's history, and only the trunk's history answers it):
-
-```bash
-git merge-base --is-ancestor <branch> "origin/$TRUNK" && echo REACHED || echo NOT_ANCESTOR
-```
-
-- `REACHED` → the branch's own commits are literally in the trunk's history. **Merged candidate.**
-- `NOT_ANCESTOR` → not yet a verdict. A **squash**-merged branch also fails this check — the squash commit on the trunk has a new SHA, so the branch's original commits are never its ancestors. Disambiguate with the tree-level check:
-  ```bash
-  git diff "origin/$TRUNK"..<branch> --quiet && echo SQUASH_MERGED || echo STRANDED
-  ```
-  - empty diff (`SQUASH_MERGED`) → nothing the branch adds is missing from the trunk. **Merged candidate.**
-  - non-empty diff (`STRANDED`) → **not a candidate.** The trunk is genuinely missing this branch's commits, and nothing will ever pull them forward — if it had a PR, that PR is merged and closed into a dead branch. List it under its own **"not on the trunk — recovery"** group instead of the deletable set:
-    ```bash
-    git log --oneline "origin/$TRUNK..<branch>"    # the commits the trunk is missing
-    ```
-    Point at the cherry-pick recovery in `trunk.md` (fresh branch off `origin/$TRUNK`, `git cherry-pick` the missing commits oldest-first, open a new PR — never force-push the stranded branch itself). Never offer it for deletion.
-
-**Branches without `[gone]` — ask the host, don't grep commit messages.** `[gone]` only fires when the remote deletes the source branch on merge. A branch squash-merged with "delete branch on merge" OFF keeps a live remote and never flips to `[gone]`, so the check above skips it — and if the remote *never* deletes source branches, `[gone]` finds nothing at all even though every branch is merged. Do NOT rely on `git branch --merged` or `git cherry` here either — squash collapses N commits into one new patch-id, so both report the branch as fully unmerged. When a host CLI is available, ask it directly instead of guessing from the tree:
+**PR lookup, once (if a host CLI is available).** Both gates below need to know, per branch, whether it has a merged PR and — critically — what commit that PR actually merged, which can differ from the branch's current tip (see the tip check at the end of this step). Ask the host once for the whole repo rather than per branch:
 
 ```bash
 REMOTE=$(git remote get-url origin 2>/dev/null)
@@ -88,16 +70,38 @@ case "$REMOTE" in
   *)        CLI=      ;;
 esac
 
-# one call for the whole repo — also drives the tip check below:
 gh pr list --state all --limit 1000 --json number,state,headRefName,mergedAt,headRefOid
 ```
 
-Match each non-`[gone]` local branch to `headRefName`:
+Match by `headRefName`. A branch with a `MERGED` PR gets a `headRefOid` from this — use it, not the branch's live tip, for the gates below. No host CLI, or no matching PR → there's no `headRefOid`; the gates fall back to the branch's own tip, with the caveat noted at each step.
 
-- `state == MERGED` → run it through the **same gates as the `[gone]` route**: the `--is-ancestor` trunk check, the tree-diff disambiguation if that fails, and the tip check below. Reuse the gates — finding the branch a different way doesn't excuse skipping them.
+**`[gone]` is not "merged to the trunk".** GitHub/GitLab delete the source branch on ANY merge — including a merge into a now-dead intermediate base branch (a stacked-PR shape: branch B merges into branch A, and A is itself already merged, or never merges at all). Treating `[gone]` alone as "merged" force-deletes the last copy of a stranded branch. Gate every `[gone]` branch on the trunk before calling it a candidate, reusing the check `plugins/toolbox/skills/start-issue/trunk.md` already owns ("Did the work reach the trunk?" — a merge is a claim about the trunk's history, and only the trunk's history answers it). Run it against `headRefOid` from the PR lookup when one was found, **not** the branch's live tip — a branch with a trailing post-merge commit (see the tip check below) has a tip that was never in any PR, and checking that tip directly would read the trailing commit as part of the merge and misclassify "merged, plus one unlanded commit" as fully stranded:
+
+```bash
+REF="${HEAD_REF_OID:-<branch>}"     # headRefOid from the PR lookup above, else the branch's own tip
+git merge-base --is-ancestor "$REF" "origin/$TRUNK" && echo REACHED || echo NOT_ANCESTOR
+```
+
+- `REACHED` → the trunk has this content. **Merged candidate** — still subject to the tip check below.
+- `NOT_ANCESTOR` → not yet a verdict. A **squash**-merged branch also fails this check — the squash commit on the trunk has a new SHA, so the original commits are never its ancestors. Disambiguate with the tree-level check, same `$REF`:
+  ```bash
+  git diff "origin/$TRUNK".."$REF" --quiet && echo SQUASH_MERGED || echo STRANDED
+  ```
+  - empty diff (`SQUASH_MERGED`) → nothing this content adds is missing from the trunk. **Merged candidate** — still subject to the tip check below.
+  - non-empty diff (`STRANDED`) → **not a candidate.** The trunk is genuinely missing this content, and nothing will ever pull it forward — if it had a PR, that PR is merged and closed into a dead branch. List it under its own **"not on the trunk — recovery"** group instead of the deletable set:
+    ```bash
+    git log --oneline "origin/$TRUNK..$REF"    # the commits the trunk is missing
+    ```
+    Point at the cherry-pick recovery in `trunk.md` (fresh branch off `origin/$TRUNK`, `git cherry-pick` the missing commits oldest-first, open a new PR — never force-push the stranded branch itself). Never offer it for deletion.
+
+**Branches without `[gone]` — ask the host, don't grep commit messages.** `[gone]` only fires when the remote deletes the source branch on merge. A branch squash-merged with "delete branch on merge" OFF keeps a live remote and never flips to `[gone]`, so the check above skips it — and if the remote *never* deletes source branches, `[gone]` finds nothing at all even though every branch is merged. Do NOT rely on `git branch --merged` or `git cherry` here either — squash collapses N commits into one new patch-id, so both report the branch as fully unmerged.
+
+Match each non-`[gone]` local branch to `headRefName` in the PR lookup above:
+
+- `state == MERGED` → run it through the **same gate as the `[gone]` route**, above, using its `headRefOid`. Reuse the gate — finding the branch a different way doesn't excuse skipping it.
 - `state == CLOSED` (never merged), or no matching PR at all → **not a candidate.** List it in its own **"no merged PR found"** group; never offer it for deletion.
 
-**No host CLI available — last resort only.** Without `gh`/`glab` there is no direct PR-state signal, so fall back to the tree-level check. State its weakness where it's used, not only in this skill's Notes: once the trunk has moved ahead at all, `git diff "origin/$TRUNK"..<branch> --quiet` reads DIFF (non-empty) for basically every branch — on its own it answers "did anything change since", not "was this merged".
+**No host CLI available — last resort only.** Without `gh`/`glab` there is no `headRefOid` and no direct PR-state signal, so fall back to the tree-level check against the branch's own tip. State its weakness where it's used, not only in this skill's Notes: once the trunk has moved ahead at all, `git diff "origin/$TRUNK"..<branch> --quiet` reads DIFF (non-empty) for basically every branch — on its own it answers "did anything change since", not "was this merged". It also can't distinguish a stranded branch from a merged one with a trailing commit — both read DIFF — so a branch caught here reads as `STRANDED` under this section's gate above, with no sharper "commits after the merge" framing available.
 
 ```bash
 git diff "origin/$TRUNK"..<branch> --quiet && echo MERGED_UNVERIFIED || echo UNKNOWN
@@ -106,14 +110,14 @@ git diff "origin/$TRUNK"..<branch> --quiet && echo MERGED_UNVERIFIED || echo UNK
 - empty diff → a **weak** merged candidate. Label it "merged, remote not deleted (unverified — no host CLI)" in the preview so the operator knows this wasn't confirmed against a PR.
 - non-empty diff → **do not assume unmerged, and do not drop it silently.** List the branch in a **"could not classify (no host CLI)"** group instead. An empty preview here reads as "nothing to clean" when the truth is "the tool couldn't tell" — that gap is the failure this replaces.
 
-**Tip check (all routes) — commits after the merge.** A branch can receive commits AFTER its PR merges — someone pushes one more commit post-merge. The merge signal above (`[gone]`+ancestor, or the `gh pr list` sweep) still fires, but those trailing commits were never in any PR, and with "delete branch on merge" on, the remote is already gone by the time they're pushed — the local branch is their last copy. Before finalizing any merged candidate, when `$CLI` is set, reuse the `gh pr list` result above (or run it now if this candidate came from the `[gone]` route and it hasn't run yet). Match the candidate branch to its `headRefName`, then compare the recorded `headRefOid` to the branch's current tip:
+**Tip check — commits after the merge.** Only runs when the PR lookup found a `headRefOid` for the branch. A branch can receive commits AFTER its PR merges — the gate above still reads `REACHED`/`SQUASH_MERGED` (it ran against `headRefOid`, not the tip, precisely so this stays true), but the trailing commits themselves were never in any PR, and with "delete branch on merge" on, the remote is already gone by the time they're pushed — the local branch is their last copy. Compare the branch's current tip to `headRefOid`:
 
 ```bash
 git rev-parse <branch>   # or origin/<branch> if the remote copy is still live
 ```
 
 - tip == `headRefOid` → nothing trailing. Stays a **merged candidate**.
-- tip != `headRefOid` → **not a candidate under the "merged" label.** List it in a new **"commits after the merge"** group instead:
+- tip != `headRefOid` → **not a candidate under the "merged" label**, even though the gate above passed. List it in a new **"commits after the merge"** group instead:
   ```bash
   git log --oneline "<headRefOid>..<branch>"     # the trailing commits
   ```
@@ -124,7 +128,7 @@ git rev-parse <branch>   # or origin/<branch> if the remote copy is still live
   ```
   Say the fix is a new PR for the trailing commits — never offer the branch for deletion in the same batch the operator confirms with one keystroke.
 
-No host CLI available → this check can't run; a merged candidate is presented as-is, tip unverified.
+No `headRefOid` available (no host CLI, or no PR found for this branch) → this check can't run, and the gate above already used the branch's own tip — see the caveat in the no-host-CLI fallback just above.
 
 ### 3. Present the preview, then ask ONCE
 
