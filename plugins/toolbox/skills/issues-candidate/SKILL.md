@@ -10,12 +10,14 @@ End-of-task sweep for work that should become a tracker issue instead of dying i
 
 The method is host-agnostic; the exact create calls live in the matching tracker file.
 
-```bash
-# Tracker detection, in order:
-#   1. A tracker MCP/CLI configured for this repo (Linear, Jira, …) — check available tools first
-#   2. git remote host → gh issue / glab issue
-case "$(git remote get-url origin 2>/dev/null)" in *github*) HOST=github;; *gitlab*) HOST=gitlab;; esac
-```
+**Tracker detection, in order — a tracker MCP always wins over the git remote.** A GitHub/GitLab remote proves where the *code* lives, not where the *backlog* lives; those are routinely different, and checking the remote first files issues in the wrong place with no warning.
+
+1. **Check available tools first.** Look for an already-configured tracker MCP/CLI — tool names prefixed `mcp__*Linear*`, `mcp__*Jira*`, or similar. Found one → that's `HOST`, use its `trackers/<name>.md`. Stop here; do not also check the git remote.
+2. **Only if no tracker MCP/CLI is configured**, fall back to the git remote host:
+   ```bash
+   case "$(git remote get-url origin 2>/dev/null)" in *github*) HOST=github;; *gitlab*) HOST=gitlab;; esac
+   ```
+
 Read `trackers/linear.md`, `trackers/github.md` or `trackers/gitlab.md` for the create/search calls wherever a step says *(see tracker file)*. No tracker reachable → copy-paste fallback (Step 7).
 
 ## When to Use
