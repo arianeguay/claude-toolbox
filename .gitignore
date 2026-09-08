@@ -2,3 +2,5 @@
 *.bak-*
 PROFILE.md
 .claude/worktrees/
+.agents/
+skills-lock.json
