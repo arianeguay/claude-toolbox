@@ -19,6 +19,23 @@ git -C "$WT" merge-base --is-ancestor HEAD "origin/$TRUNK"    # exit 0 = the tru
 The fetch is not optional — a local `origin/main` two commits stale answers for a trunk
 that no longer exists.
 
+**A squash merge fails this check, correctly and uselessly.** Squashing writes a *new*
+commit, so the branch's commits are never ancestors of the trunk and `--is-ancestor` exits
+non-zero on work that landed perfectly. It fails closed, which is the safe direction, but a
+flow that stops on it will hunt a phantom drop and may "recover" by cherry-picking work the
+trunk already has. When the merge was a squash — or when you do not know which it was —
+ask about **content**, not ancestry:
+
+```bash
+git -C "$WT" fetch -q origin
+[ -z "$(git -C "$WT" diff "origin/$TRUNK" HEAD)" ]    # exit 0 = the trunk has the content
+```
+
+An empty diff means the trunk holds every change the branch made, however it got there.
+Use `--is-ancestor` for merge and rebase, the content diff for squash; when in doubt, the
+content diff answers both. Observed 2026-09-08: `gh pr merge --squash` on a clean PR
+reported `NOT ON TRUNK` under `--is-ancestor` while the trunk held all 13 files.
+
 **Ask git, do not grep git's output.** The obvious form —
 `git branch -r --contains <sha> | grep -q "origin/$TRUNK"` — matches on substring, so any
 sibling ref whose name starts with the trunk's (`origin/main-experiment`, `origin/mainline`,
