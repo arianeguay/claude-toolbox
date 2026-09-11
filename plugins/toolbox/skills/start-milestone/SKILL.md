@@ -94,6 +94,16 @@ state transitions, the build and the PR. Two milestone-level additions:
 Merging N sibling PRs is not N merges. They branched from the same commit, so every one
 after the first is behind.
 
+**Merge the batch's own CI and tooling PRs first.** If one of the issues added a workflow, a
+lint gate or a test runner, it is worth nothing to the siblings that merged before it. Land
+it first and every remaining PR in the batch gets rebased onto it, so each one is actually
+checked rather than merged on a promise. Observed 2026-09-10: the CI PR merged first went
+red on its own next sibling and caught an undeclared test dependency that had been invisible
+on the host for months. Merged last, it would have checked nothing in the batch it shipped
+with.
+
+This reorders Step 1's output on purpose, and it is the one reason to. Say so when you do it.
+
 For each PR after the first, in order:
 
 ```bash
@@ -107,6 +117,22 @@ not work — each merge moves the base again.
 
 **Prove the rebase, do not assume it.** Two changes that both apply cleanly can still
 disagree; the test run after the rebase is the only thing that says otherwise.
+
+**A rebase that empties the branch reports success twice.** If the PR was already merged —
+by the user, or by a squash you did not perform — the rebase finds its commit already
+upstream, drops it, and leaves the branch pointing at the trunk. The push that follows then
+says `Everything up-to-date`, which reads like "nothing to do" rather than "there was nothing
+left". Neither message says the branch is now empty. Check what the rebase actually kept
+before pushing, and never let `-q` and `&&` swallow the answer:
+
+```bash
+git -C <wt> log --oneline origin/<default>..HEAD    # empty = your commits are already in
+```
+
+Measured 2026-09-10: two PRs in a batch had been merged by the user mid-run. Their rebases
+became no-ops, the force-push moved the branch to the trunk's tip, and `gh pr view` kept
+reporting the old head — three signals agreeing on a state that was not the one in front of
+me. The trunk content check below is what settled it, as always.
 
 **Prove the merge too.** This is the one place in the toolbox that observes a merge, so it
 owns the assertion — run the check in `../start-issue/trunk.md` after each merge, before
