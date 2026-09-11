@@ -151,7 +151,8 @@ Then call `AskUserQuestion`:
 For each approved memory:
 1. Write the file at `<memory-dir>/<filename>.md` with frontmatter (`name`, `description`, `type`).
 2. Body structure for `feedback_*` and `project_*`: lead with the rule/fact, then `**Why:**` line and `**How to apply:**` line. Knowing *why* lets future-Claude judge edge cases.
-3. Update `<memory-dir>/MEMORY.md` index — one line, ~150 chars, `- [Title](file.md) — one-line hook`.
+3. **Run the check before you write the claim.** Any assertion a command could confirm — a config value, a file's provenance, a version, a count — gets that command run first, even when it feels settled. The claims most worth re-checking are the ones that came from your own reasoning earlier in the session: they reached the memory without ever passing a verification step.
+4. Update `<memory-dir>/MEMORY.md` index — one line, ~150 chars, `- [Title](file.md) — one-line hook`.
 
 For instruction-file (CLAUDE.md / AGENTS.md / etc.) updates:
 - Edit the file in place — but **do not auto-commit**. Show the diff and let the user decide the ship path (bundle into current work, standalone change, or whatever their project convention is).
@@ -183,4 +184,5 @@ If the user deferred the instruction-file change to a reviewer or a separate ste
 - **Each memory needs a `Why:` line.** No why = brittle memory that won't survive edge cases.
 - **Cite the moment it surfaced.** "User said X on <date> after <event>" beats "user wants X" — context lets future-Claude judge whether the rule still applies.
 - **Calibrate when a skill or agent failed.** If a skill or agent missed a pattern (false negative) or flagged a correct convention (false positive), the user's first instinct is to fix the symptom; this skill should also flag the underlying skill/agent gap as a modification candidate.
+- **A memory inherits no review.** Code gets read by a reviewer, a test, or a failing build; a memory ships straight into every future context with nothing downstream to catch it. A wrong one is worse than a missing one, because it will be trusted.
 - **Honest filter.** Most session details are ephemeral. A clean run that captures 0–1 memory is a successful run. Don't pad to look productive.
