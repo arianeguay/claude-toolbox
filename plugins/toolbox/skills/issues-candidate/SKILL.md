@@ -90,6 +90,7 @@ Per candidate, work out and record:
 - **Type** — `bug` (something is wrong now) vs feature/refactor/chore (nothing broken)
 - **Priority** — never "none"; justify in one clause
 - **Estimate** — always set, rough is fine
+- **Due date** — not a deadline: the earliest date the issue is actually workable (a wait-out condition clears, a floor/cooldown expires, a scheduled event happens first). If a candidate is blocked on time passing rather than blocked on other work, compute that date and put it in the tracker's due-date field at creation *(see tracker file)* — it's what tells a future pass when to pick the issue up. No such gate → leave it unset; don't invent one to fill the field.
 - **Evidence** — `file:line` from the diff, or the conversation moment it surfaced
 - **Body** — symptom · where · why it's out of scope here · what a fix involves
 - **Relations** — encode ordering as `blockedBy`, never as prose in the body

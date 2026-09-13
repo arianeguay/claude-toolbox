@@ -24,6 +24,7 @@ glab issue create \
   --label bug --label "priority::high" \
   --weight 2 \
   --milestone "<milestone>" \
+  --due-date "<ISO date>" \
   --description "$(cat <<'EOF'
 **Symptom** — <what is observably wrong / missing>
 
@@ -35,6 +36,8 @@ glab issue create \
 EOF
 )"
 ```
+
+- `--due-date`: earliest date the issue is workable, not a deadline. Omit when there's no such gate.
 
 ## Ordering (blockedBy)
 

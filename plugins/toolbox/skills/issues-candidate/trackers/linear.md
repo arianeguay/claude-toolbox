@@ -33,6 +33,7 @@ save_issue
   estimate:    <number>            # never omit
   project:     <name>              # when one applies
   cycle:       <number|name>       # when the team runs cycles and it belongs in one
+  dueDate:     <ISO date>          # earliest date the issue is workable, not a deadline
   blockedBy:   ["ABC-123"]         # ordering goes here, never in the body
 ```
 

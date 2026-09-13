@@ -1,6 +1,6 @@
 # Tracker: GitHub Issues (`gh`)
 
-GitHub has no native priority/estimate fields — they live as **labels** (`priority: high`) or as **Project v2 custom fields**. Never silently drop them: pick the repo's existing mechanism, or state which one you used.
+GitHub has no native priority/estimate/due-date fields — they live as **labels** (`priority: high`) or as **Project v2 custom fields**. Never silently drop them: pick the repo's existing mechanism, or state which one you used.
 
 ```bash
 gh auth status || echo "STOP — gh auth login"
@@ -40,5 +40,6 @@ EOF
 - Labels must already exist — `gh label create` first, or fall back to a label the repo has.
 - No `blockedBy` primitive: state it as `Blocked by #<n>` in the body **and**, if the repo uses Projects v2, set the dependency field there.
 - Estimate: a `size: S/M/L` label or a Project v2 number field, whichever the repo already uses.
+- Due date (earliest date the issue is workable, not a deadline): a Project v2 date field if the repo tracks one, else state the date in the body and say it couldn't be recorded as a real field.
 
 Report the returned issue URL for Step 8.
