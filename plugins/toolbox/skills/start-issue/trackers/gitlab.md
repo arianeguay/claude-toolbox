@@ -48,8 +48,9 @@ glab api -X PUT "projects/:id/issues/<iid>" -f weight=2 -f milestone_id=<id>
 ## Branch name (Step 2)
 
 GitLab's own convention — and what its "create branch" button generates — is
-`<iid>-<slugified-title>`. A branch starting with `<iid>-` auto-links to the issue and
-makes the MR close it. Create it through the API so the link registers server-side:
+`<iid>-<slugified-title>`. A branch starting with `<iid>-` is listed on the issue as a
+related branch. Whether the MR closes the issue is decided by its description alone (Step 7).
+Create it through the API so the link registers server-side:
 
 ```bash
 DEFAULT=$(glab api "projects/:id" | jq -r .default_branch)
@@ -77,8 +78,18 @@ stand-in for "in review".
 
 ## Link the MR back (Step 7)
 
-`Closes #<iid>` in the MR description is GitLab's native link and closes the issue on merge.
-For an MR that shouldn't close it, use `Related to #<iid>` and comment the URL:
+The Step 6 link type picks the line in the MR description:
+
+| Type | Line |
+| -- | -- |
+| Resolves | `Closes #<iid>` (also `fixes`, `resolves`, `implements`): closes on merge into the default branch |
+| Contributes | `Related to #<iid>` |
+| Related | `Related to #<iid>` |
+
+Read the description back after the MR exists: one opened from an issue can arrive with
+`Closes #<iid>` already written. Remove it unless the type is Resolves. A project can also
+turn auto-close off (Settings > Repository > Branch defaults), in which case even Resolves
+closes nothing; say so in the Step 8 report. For Contributes and Related, comment the URL:
 
 ```bash
 glab issue note <iid> --message "MR: <url>"
