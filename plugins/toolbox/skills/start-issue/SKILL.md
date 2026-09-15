@@ -113,23 +113,38 @@ Scope discipline: every changed line traces to the issue. Findings outside it go
 toolbox:mr-ship        # full for a complex issue, short for a simple one
 ```
 
-That runs the mechanical checks, the diff hygiene pass and `toolbox:create-or-update-mr`, then pushes and opens the PR/MR. The description **must** reference the issue key so the tracker links them.
+That runs the mechanical checks, the diff hygiene pass and `toolbox:create-or-update-mr`, then pushes and opens the PR/MR. The description **must** carry the issue key behind the magic word of the link type chosen below. A bare key links nothing.
 
-Skill missing → push and open the PR by hand (`gh pr create` / `glab mr create`) with the key in the body.
+Skill missing → push and open the PR by hand (`gh pr create` / `glab mr create`) with that same line in the body.
+
+### Choose the link type
+
+Decide from the issue's proof criteria, not from the diff:
+
+| Type | When |
+| -- | -- |
+| **Resolves** | This is the issue's last open PR, and merging it satisfies every proof criterion the issue states (tests, CI). |
+| **Contributes** | The issue stays open after merge: its proof needs a post-merge run or a calendar gate (a due date), a manual or host step remains, or another PR for the same issue is still open. |
+| **Related** | The PR advances none of the issue's proof criteria: a fix found along the way. |
+
+Unsure between Resolves and Contributes → Contributes. A wrong Contributes costs one manual close; a wrong Resolves closes an unproven issue at merge, and nothing reopens it.
+
+The key goes in the PR/MR **title** only for Resolves. The adapter gives the words for each type.
 
 ## Step 7 — Move the issue to In Review
 
-Adapter step. Set the in-review state and link the PR/MR back on the issue — through the tracker's native link (`Closes #<n>`, a Linear attachment), not just a comment.
+Adapter step. Set the in-review state and link the PR/MR back on the issue, through the tracker's native link (the Step 6 link-type line, a Linear attachment), not just a comment.
 
 ## Step 8 — Report
 
-Six lines, no recap prose:
+Seven lines, no recap prose:
 
 ```
 <KEY> <title>
 branch    <branch>  (worktree <path>)
 base      <base>  [not the trunk — see below]
 verdict   simple | complex — <deciding criterion>
+link      Resolves | Contributes | Related: <deciding criterion>
 PR        <url>
 state     In Review
 ```

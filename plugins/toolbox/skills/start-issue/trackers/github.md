@@ -86,8 +86,17 @@ transition happened. Never `gh issue close` as a stand-in for "in review".
 
 ## Link the PR back (Step 7)
 
-Put `Closes #<n>` in the PR body — that is GitHub's native issue↔PR link and it auto-closes
-on merge. For an issue the PR should *not* close, use `Refs #<n>` and comment the URL:
+The Step 6 link type picks the line in the PR body:
+
+| Type | Line |
+| -- | -- |
+| Resolves | `Closes #<n>` (also `fixes`, `resolves`): GitHub's native link, closes on merge |
+| Contributes | `Refs #<n>`: not a keyword, so it only cross-references |
+| Related | `Refs #<n>` |
+
+Closing keywords act only on a PR that targets the default branch; against any other base
+they are ignored and no link is created. For Contributes and Related, also comment the URL,
+since GitHub records no link for a plain mention:
 
 ```bash
 gh issue comment <n> --body "PR: <url>"

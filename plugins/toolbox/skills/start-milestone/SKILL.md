@@ -157,6 +157,12 @@ Move every issue to its done state — **only the ones Step 4 saw land on the tr
 issue whose commits are not on the trunk is not done however its PR reads; leave it where
 it is, name it in the summary, and carry the recovery there.
 
+The reverse happens too. A PR linked as Resolves closes its issue at merge, through the
+tracker integration, whether its proof exists or not. Re-read every issue's state after the
+merges: one the integration closed while its proof is still pending goes back to its review
+state, its due date left as the not-before date. Observed 2026-09-15: two M6 issues went to
+Done at merge, days before the cron runs that were their proof.
+
 Then run `toolbox:adhd-summary` **once for the milestone**, not once per issue. The verdict the user needs is about the batch: what
 merged, what still needs them, what got filed.
 
