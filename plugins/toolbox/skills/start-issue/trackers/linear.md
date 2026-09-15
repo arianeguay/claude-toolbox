@@ -61,5 +61,21 @@ Pass `assignee` only if the issue is unassigned.
 create_attachment  issueId: <KEY>  url: <pr url>  title: "<PR/MR #<n>>"
 ```
 
-Linear also auto-links when the branch name came from `get_issue` and the PR body carries
-the key — the attachment is the belt-and-braces, not the mechanism.
+The attachment is belt-and-braces. The link Linear acts on comes from the PR/MR itself, and
+its type decides what a merge does to the issue. Write one line in the description:
+
+| Type | Line | On merge |
+| -- | -- | -- |
+| Resolves | `Fixes <KEY>` (also `closes`, `resolves`, `completes`, `implements`) | the team's "On merge" status, usually Done |
+| Contributes | `Contributes to <KEY>` (also `ref`, `part of`, `towards`) | nothing; open and review events still move the issue |
+| Related | `Related to <KEY>` (also `relates to`) | nothing, ever |
+
+Measured, not assumed:
+
+- A bare `<KEY>` in the description creates no link at all (2026-09-15, ops#55).
+- An issue linked to several PRs closes only when the last one merges.
+- GitLab MRs never link from commit messages; GitHub commits can.
+- Linear's GitLab page still files `related to` under contributing. Both skip the merge
+  status, so the Related line is safe on either host.
+- The link type is not readable back: `get_attachment` returns title and URL only. Do not
+  report a type as verified; report the line written.
