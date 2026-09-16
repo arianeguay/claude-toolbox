@@ -53,13 +53,28 @@ Match by status **type**, then use the returned name:
 save_issue  id: <KEY>  state: "<name from list_issue_statuses>"  assignee: "me"
 ```
 
-Pass `assignee` only if the issue is unassigned.
+Pass `assignee` only if the issue is unassigned. **Never combine this call with `links`**
+(see below) — on claude-toolbox#19 the combination returned a `Duplicate attachment for
+duplicate url` warning and left the state unapplied, with no error raised (STU-1474).
+Re-read (`get_issue`) after saving and stop the flow if the state did not change.
 
 ## Link the PR back (Step 7)
 
+Read first, write only if missing — Linear's own GitHub/GitLab integration usually attaches
+the PR/MR URL within seconds of the PR opening:
+
 ```
-create_attachment  issueId: <KEY>  url: <pr url>  title: "<PR/MR #<n>>"
+get_issue  id: <KEY>
 ```
+
+Check the returned `attachments` for that URL. Only if absent:
+
+```
+save_issue  id: <KEY>  links: [{url: <pr url>, title: "<PR/MR #<n>>"}]
+```
+
+`create_attachment` is a deprecated base64 **file upload** (`base64Content`, `filename`,
+`contentType`, `sha256` required) — it rejects a URL link outright and is not a substitute.
 
 The attachment is belt-and-braces. The link Linear acts on comes from the PR/MR itself, and
 its type decides what a merge does to the issue. Write one line in the description:
