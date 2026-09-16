@@ -183,8 +183,15 @@ Always show the full title + description and wait for explicit approval (`yes` /
 ```bash
 # create (draft by default)
 gh pr create --base "$TARGET" --head "$BRANCH" --title "$TITLE" --body "$DESCRIPTION" --draft
-# update
-gh pr edit "$BRANCH" --title "$TITLE" --body "$DESCRIPTION"
+# update — gh pr edit unconditionally queries repository.pullRequest.projectCards, a
+# field GitHub retired; on some gh builds that aborts the whole mutation before writing
+# and reports it as a routine "Projects (classic) is being deprecated" notice, so a title
+# or body edit can silently write nothing. Use the REST route and read the value back.
+REPO_NWO=$(gh repo view --json nameWithOwner -q .nameWithOwner)
+PR_NUM=$(gh pr view "$BRANCH" --json number -q .number)
+jq -n --arg t "$TITLE" --arg b "$DESCRIPTION" '{title:$t,body:$b}' \
+  | gh api -X PATCH "repos/$REPO_NWO/pulls/$PR_NUM" --input - >/dev/null
+gh pr view "$BRANCH" --json title,body -q '[.title,.body]|@tsv'   # confirm the write landed
 gh pr ready "$BRANCH"   # or: gh pr ready --undo   (to set Draft)
 ```
 
