@@ -73,6 +73,12 @@ its type decides what a merge does to the issue. Write one line in the descripti
 Measured, not assumed:
 
 - A bare `<KEY>` in the description creates no link at all (2026-09-15, ops#55).
+- The body line wins over the branch name. A PR on the `gitBranchName` branch with
+  `Contributes to <KEY>` in its body merged and left the issue open, while the same team's
+  merge automation closed Resolves-linked issues the day before (claude-toolbox#18,
+  STU-1473). Keep using `gitBranchName` for every type.
+- A key in the PR title combined with a contributing body line is untested, hence the
+  title rule in Step 6.
 - An issue linked to several PRs closes only when the last one merges.
 - GitLab MRs never link from commit messages; GitHub commits can.
 - Linear's GitLab page still files `related to` under contributing. Both skip the merge
