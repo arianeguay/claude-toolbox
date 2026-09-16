@@ -28,13 +28,20 @@ ask about **content**, not ancestry:
 
 ```bash
 git -C "$WT" fetch -q origin
-[ -z "$(git -C "$WT" diff "origin/$TRUNK" HEAD)" ]    # exit 0 = the trunk has the content
+CHANGED=$(git -C "$WT" diff --name-only "$(git -C "$WT" merge-base "origin/$TRUNK" HEAD)" HEAD)
+git -C "$WT" diff --quiet "origin/$TRUNK" HEAD -- $CHANGED    # exit 0 = the trunk has this work
 ```
 
-An empty diff means the trunk holds every change the branch made, however it got there.
-Use `--is-ancestor` for merge and rebase, the content diff for squash; when in doubt, the
-content diff answers both. Observed 2026-09-08: `gh pr merge --squash` on a clean PR
-reported `NOT ON TRUNK` under `--is-ancestor` while the trunk held all 13 files.
+Diffing the whole tree against `origin/$TRUNK` fails the same way `--is-ancestor` does: the
+trunk moving for a reason that has nothing to do with this branch (a concurrent session's PR
+landing during the same window) makes the diff non-empty and reports a drop that never
+happened. Scoping the diff to the files the branch actually changed answers "did my change
+land" instead of "are these two trees identical". Use `--is-ancestor` for merge and rebase,
+the scoped content diff for squash; when in doubt, the content diff answers both. Observed
+2026-09-08: `gh pr merge --squash` on a clean PR reported `NOT ON TRUNK` under
+`--is-ancestor` while the trunk held all 13 files. Observed 2026-09-11: the unscoped content
+diff then reported `NOT ON TRUNK` on two more repos whose PRs had landed cleanly, because an
+unrelated PR merged into the same trunk during the same window.
 
 **Ask git, do not grep git's output.** The obvious form —
 `git branch -r --contains <sha> | grep -q "origin/$TRUNK"` — matches on substring, so any
@@ -85,8 +92,13 @@ Name the trunk the commits are missing from, and the count:
 
 ```
 ❌ NOT ON TRUNK — 2 commits merged into arianedguay/stu-1210-…, not origin/main
+   Files that differ: src/auth.ts, src/auth.test.ts
    Recovery: cherry-pick onto origin/main on a fresh branch, open a new PR.
    Do not force-push <branch> — its PR is merged and closed.
 ```
+
+Print `git diff --name-only origin/$TRUNK HEAD` alongside every failure of the content-diff
+check. When the trunk moved for an unrelated reason, the differing files are someone else's
+and that is visible at a glance, without a second command.
 
 Passing is one line, or silence in a report that has no other failures.
