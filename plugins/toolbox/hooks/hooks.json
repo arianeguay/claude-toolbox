@@ -6,6 +6,11 @@
         "hooks": [
           {
             "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/enforce-worktree-path.sh",
+            "timeout": 5
+          },
+          {
+            "type": "command",
             "command": "${CLAUDE_PLUGIN_ROOT}/hooks/symlink-worktree-local-config.sh",
             "timeout": 5
           }
@@ -16,6 +21,11 @@
       {
         "matcher": "Bash",
         "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/enforce-worktree-path.sh",
+            "timeout": 5
+          },
           {
             "type": "command",
             "command": "${CLAUDE_PLUGIN_ROOT}/hooks/symlink-worktree-local-config.sh",

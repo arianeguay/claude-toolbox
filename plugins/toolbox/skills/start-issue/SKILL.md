@@ -48,14 +48,16 @@ Two shapes, and the adapter says which one applies:
 
 - **The tracker only names the branch** (Linear): create it locally.
   ```bash
-  git worktree add -b <branch> .claude/worktrees/<branch> origin/<default-branch>
+  git worktree add -b <branch> .worktrees/<branch> origin/<default-branch>
   ```
 - **The tracker creates the branch server-side** (GitHub `gh issue develop`, GitLab's branch API): the branch already exists on the remote and carries the link. **Attach** the worktree to it — creating a second local branch of the same name silently discards the link.
   ```bash
-  git worktree add .claude/worktrees/<branch> <branch>
+  git worktree add .worktrees/<branch> <branch>
   ```
 
-Every task gets its own worktree — never branch-switch the main checkout.
+Every task gets its own worktree, and the main checkout is never branch-switched.
+Mechanics, the path contract and the rules for addressing one live in
+`toolbox:use-git-worktree`; what follows is only what is specific to starting an issue.
 
 ### When the issue's premise lives in an unmerged PR
 
@@ -67,7 +69,7 @@ If a stacked base is chosen anyway — the base is huge, the reviewer asked for 
 
 **The worktree holds the files, not the session.** Do not move the session's cwd into it — no `EnterWorktree`, no `cd`. Sessions are keyed by cwd, so a session that entered a worktree is filed under that path: `claude --resume` from the main checkout will not list it, which after a crash is indistinguishable from a session that never existed, and removing the worktree strands it for good.
 
-So address the worktree explicitly for the rest of the flow — `git -C <path>`, `make -C <path>`, absolute paths for every read and write. Set `WT=$(pwd)/.claude/worktrees/<branch>` once and use it. A bare `git` command now lands on the trunk, so confirm the worktree before the first edit, and never on `pwd`:
+So address the worktree explicitly for the rest of the flow — `git -C <path>`, `make -C <path>`, absolute paths for every read and write. Set `WT=$(pwd)/.worktrees/<branch>` once and use it. A bare `git` command now lands on the trunk, so confirm the worktree before the first edit, and never on `pwd`:
 
 ```bash
 git -C "$WT" branch --show-current   # must print <branch>
