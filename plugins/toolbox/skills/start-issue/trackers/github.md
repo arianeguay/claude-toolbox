@@ -58,7 +58,7 @@ second branch:
 
 ```bash
 git fetch origin "<n>-<kebab-title>"
-git worktree add .claude/worktrees/<n>-<kebab-title> "<n>-<kebab-title>"
+git worktree add .worktrees/<n>-<kebab-title> "<n>-<kebab-title>"
 ```
 
 `gh issue develop` unavailable (old `gh`, no write scope) → create the branch normally and

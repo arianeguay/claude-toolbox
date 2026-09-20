@@ -56,7 +56,7 @@ Create it through the API so the link registers server-side:
 DEFAULT=$(glab api "projects/:id" | jq -r .default_branch)
 glab api -X POST "projects/:id/repository/branches" -f branch="<iid>-<kebab-title>" -f ref="$DEFAULT"
 git fetch origin "<iid>-<kebab-title>"
-git worktree add .claude/worktrees/<iid>-<kebab-title> "<iid>-<kebab-title>"
+git worktree add .worktrees/<iid>-<kebab-title> "<iid>-<kebab-title>"
 ```
 
 Keep the `<iid>-` prefix whatever else the title becomes — that prefix *is* the link.
