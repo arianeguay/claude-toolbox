@@ -18,7 +18,8 @@ different jobs, and running them in list order does neither well.
 
 ## Step 0 — Resolve the milestone and enumerate its open issues
 
-Accept a milestone URL, a project URL plus a milestone name, or a bare name.
+Accept a milestone URL, a project URL plus a milestone name, a bare name, or an epic
+(parent issue) link, whose open children are the batch.
 
 Pick the adapter from `../start-issue/trackers/<TRACKER>.md` — everything about reading an
 issue, naming a branch and moving state lives there and is not repeated here. The one
@@ -27,6 +28,9 @@ query this skill adds is enumeration:
 | Tracker | Enumerate the milestone's open issues |
 | -- | -- |
 | Linear | `list_issues` with `project:` + `state:` per open type, then filter on `projectMilestone.name` client-side. **There is no milestone filter and results paginate** — a single unfiltered call silently returns the first page and looks complete. |
+| Epic, Linear | `list_issues` with `parentId: <epic key>` once per open state (`backlog`, `unstarted`, `started`), concatenated. Children in `completed`/`canceled` are not open. |
+| Epic, GitHub | the issue's sub-issues, else the issues in its tasklist: `gh issue view <n> --json body`, then read each linked issue's state |
+| Epic, GitLab | `glab issue list` on the epic's child issues, `--state opened` |
 | GitHub | `gh issue list --milestone "<name>" --state open --json number,title,labels,url` |
 | GitLab | `glab issue list --milestone "<name>" --state opened` |
 
@@ -36,6 +40,9 @@ mixed list is how an issue gets left behind, and nothing later notices.
 
 Print the list before touching anything: key, title, estimate, labels, priority. If it is
 empty, say so and stop — do not go looking for adjacent work.
+
+For an epic, also report the children already Done or Canceled (count and keys) and skip
+them: they are neither work nor a blocker.
 
 ## Step 1 — Order them, on stated criteria
 
@@ -162,6 +169,9 @@ tracker integration, whether its proof exists or not. Re-read every issue's stat
 merges: one the integration closed while its proof is still pending goes back to its review
 state, its due date left as the not-before date. Observed 2026-09-15: two M6 issues went to
 Done at merge, days before the cron runs that were their proof.
+
+An epic link adds one rule: move the epic itself to Done only after every child is Done
+(the ones skipped in Step 0 included). While one child is still In Review, the epic stays open.
 
 Then run `toolbox:adhd-summary` **once for the milestone**, not once per issue. The verdict the user needs is about the batch: what
 merged, what still needs them, what got filed.
