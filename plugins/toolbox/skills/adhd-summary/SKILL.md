@@ -1,20 +1,21 @@
 ---
 name: adhd-summary
-description: Compress a finished task into a merge/don't-merge verdict, the few things that actually need the human, and the issues worth filing. Use when the user says "/adhd-summary", "summarize this", "résume-moi ça", "what do I need to know", "can I merge this" — or at the end of a task when the user is running several sessions at once and will not read a long report. Produces a fixed, skimmable block, never prose.
+description: Compress any conversation (research, decision, debug, brainstorm, planning, or a finished task with a PR) into a fixed skimmable list of what to retain, what was decided, what is open and what to do next; adds a merge/don't-merge verdict when a PR/MR exists. Use when the user says "/adhd-summary", "summarize this", "résume-moi ça", "what do I need to know", "can I merge this" — or at the end of a task when the user is running several sessions at once and will not read a long report. Produces a fixed block, never prose.
 user-invocable: true
 ---
 
 # ADHD Summary
 
-Hand back the two or three facts that decide what the reader does with this work in the
+Hand back the few facts that decide what the reader does with this conversation in the
 next 60 seconds. Nothing else.
 
 **Who this is for:** someone with several sessions open at once, late in the day, who
 merges fast and will not read a PR body. Assume they have forgotten the task. Assume they
 read the first line and the bold labels, and nothing in between.
 
-**Core principle:** the summary is not a shorter report — it is a *decision*. If it does
-not change what they do next, it does not go in.
+**Core principle:** the summary is not a shorter report — it is what the reader needs to
+act or to remember. If it
+does not change what they do next or what they will need tomorrow, it does not go in.
 
 ---
 
@@ -22,15 +23,30 @@ not change what they do next, it does not go in.
 
 - `/adhd-summary`, "summarize this", "résume", "what do I need to know", "can I merge this"
 - End of a task, right after a PR/MR is opened
+- The end of any conversation, or a checkpoint in a long one: research, debugging, a
+  decision, brainstorming, planning
 - The user comes back to a session that ran while they were elsewhere
 
-**Don't use** mid-task — there is no verdict to give yet. Use `toolbox:am-i-stuck` instead.
+Mid-conversation is fine: the generic block needs no finished work. If the question is
+"am I going in circles", use `toolbox:am-i-stuck` instead.
+
+## Step 0 — Pick the mode
+
+| Mode | When (any one is enough) | Block |
+|---|---|---|
+| **Task** | This conversation opened a PR/MR, or the current branch has commits ahead of its base | Verdict block (Steps 2-3) |
+| **Generic** | Anything else | Generic block (Step 3b) |
+
+A conversation that produced a PR *and* a decision the user must remember gets the task
+block; the decision goes under `NEEDS YOU`.
 
 ---
 
 ## Step 1 — Gather
 
-In this order, stopping as soon as you have the verdict:
+**Generic mode:** the conversation is the only source. Reread it; do not run git.
+
+**Task mode**, in this order, stopping as soon as you have the verdict:
 
 1. **This conversation** — if the work happened here, it is the best source.
 2. **The branch** — if it didn't:
@@ -49,7 +65,7 @@ change was actually verified, what a merge would make irreversible, and what got
 
 ---
 
-## Step 2 — Decide the verdict
+## Step 2 — Decide the verdict (task mode only)
 
 One of exactly three. Pick with this table:
 
@@ -65,7 +81,7 @@ reason — never as a footnote.
 
 ---
 
-## Step 3 — Emit the block
+## Step 3 — Emit the block (task mode)
 
 Fixed shape. Do not improvise a nicer one.
 
@@ -103,7 +119,41 @@ Rules for the block:
 
 ---
 
-## Step 4 — What earns a line
+## Step 3b — Emit the block (generic mode)
+
+```
+<Topic in ~8 words> — <where it landed, one line>
+
+KEEP (n)
+1. <fact or conclusion still useful tomorrow>
+
+DECIDED (n)
+1. <choice> — <why, one line>
+
+OPEN (n)
+1. <question or blocker> — <who has to resolve it>
+
+DO (n)
+1. <imperative action, first one doable in under 2 minutes>
+
+Skipped <n> things that don't need you.
+```
+
+What each section takes:
+
+- **KEEP** (max 5): facts, findings, numbers, names, commands the reader will look for
+  again. Not what was discussed, only what is now known.
+- **DECIDED** (max 3): choices actually made, with the reason. A rejected option is only
+  listed when the reader might re-propose it.
+- **OPEN** (max 3): unanswered questions and blockers, each with who unblocks it.
+- **DO** (max 3): concrete actions, ordered. The first must be startable now.
+- Same rules as the task block: one fact per line under ~90 characters, drop empty
+  sections, no session-invented vocabulary, no mechanism, keep the skipped count.
+- No verdict line, no `FILE THESE`. Follow-ups go under `DO` or `OPEN`.
+
+---
+
+## Step 4 — What earns a line (task mode)
 
 **NEEDS YOU** — only these four:
 
@@ -129,7 +179,16 @@ went fine — is skipped. It goes in the count, not on the page.
 
 ## Step 5 — Offer exactly one next action
 
-One line, after the block. Pick the one the verdict implies:
+One line, after the block. In generic mode, pick by this table, first match wins:
+
+| Situation | Next action |
+|---|---|
+| Follow-up work exists that nobody has filed (a deferral, a bug left alone, a gap found) | `/toolbox:issues-candidate` |
+| Knowledge that outlives the conversation (a trap, a convention, a measured fact) | `/toolbox:what-did-we-learn` |
+| Neither | The first `DO` item, or nothing when `DO` is empty |
+
+Both apply: offer `issues-candidate` first, since unfiled work is lost when the session
+closes. In task mode, pick the one the verdict implies:
 
 - `MERGE IT` → "Merge: `gh pr merge <n> --squash`"
 - `DON'T MERGE YET` → the single command that closes the gap ("Run `make test` — 30s")
@@ -171,4 +230,4 @@ Next: `make test` (about 30s), then merge.
 - Don't list what went well
 - Don't use emoji, and don't use more than one marker style
 - Don't file issues from this skill
-- Don't produce this mid-task
+- Don't produce a verdict block when there is no PR/MR
