@@ -99,6 +99,7 @@ FILE THESE (n)
 1. <issue title> — <why it matters, one line>
 2. ...
 
+CAPTURE: <see Step 4b>
 Skipped <n> things that don't need you.
 ```
 
@@ -136,6 +137,7 @@ OPEN (n)
 DO (n)
 1. <imperative action, first one doable in under 2 minutes>
 
+CAPTURE: <see Step 4b>
 Skipped <n> things that don't need you.
 ```
 
@@ -177,23 +179,36 @@ went fine — is skipped. It goes in the count, not on the page.
 
 ---
 
+## Step 4b — The CAPTURE line (both modes)
+
+Always present, one line, so the reader never wonders whether to run these. Decide from
+the conversation with these tests:
+
+| Skill | Recommend when (any one) |
+|---|---|
+| `/toolbox:issues-candidate` | A deferral, a bug found and left alone, a TODO added, a test/doc gap, or a follow-up someone said "later" about, and it is not yet filed or fixed |
+| `/toolbox:what-did-we-learn` | A trap that cost real time, a convention or constraint discovered, a measured fact, or a decision whose reason would be lost, and it is not already in a CLAUDE.md, memory or the code |
+
+Forms, first match wins:
+
+- Both: `CAPTURE: run /toolbox:issues-candidate (<n> unfiled: <one clause>), then /toolbox:what-did-we-learn (<one clause>)`
+- One: `CAPTURE: run /toolbox:<skill> (<one clause of what it would capture>)`
+- Neither: `CAPTURE: nothing worth filing or remembering.`
+
+Order when both: `issues-candidate` first, since unfiled work is lost when the session
+closes. Never recommend on a hunch: no test hit means `nothing`. This line replaces the
+old "offer issues-candidate" step, and `FILE THESE` stays the list of the issues themselves.
+
+---
+
 ## Step 5 — Offer exactly one next action
 
-One line, after the block. In generic mode, pick by this table, first match wins:
-
-| Situation | Next action |
-|---|---|
-| Follow-up work exists that nobody has filed (a deferral, a bug left alone, a gap found) | `/toolbox:issues-candidate` |
-| Knowledge that outlives the conversation (a trap, a convention, a measured fact) | `/toolbox:what-did-we-learn` |
-| Neither | The first `DO` item, or nothing when `DO` is empty |
-
-Both apply: offer `issues-candidate` first, since unfiled work is lost when the session
-closes. In task mode, pick the one the verdict implies:
+One line, after the capture line. Generic mode: the first `DO` item, or nothing when `DO`
+is empty. Task mode: the one the verdict implies:
 
 - `MERGE IT` → "Merge: `gh pr merge <n> --squash`"
 - `DON'T MERGE YET` → the single command that closes the gap ("Run `make test` — 30s")
 - `YOUR CALL` → the one question, asked once, answerable in a word
-- Issues listed → "File them: `/toolbox:issues-candidate`"
 
 Never offer two. Never end with "let me know if you want more detail" — if detail matters,
 it was a line in the block.
@@ -214,6 +229,7 @@ NEEDS YOU (1)
 FILE THESE (1)
 1. qa_coverage has the same blind spot — left alone deliberately, its reader has no tools.
 
+CAPTURE: run /toolbox:issues-candidate (1 unfiled: the qa_coverage blind spot)
 Skipped 6 things that don't need you.
 
 Next: `make test` (about 30s), then merge.
