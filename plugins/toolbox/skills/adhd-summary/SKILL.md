@@ -34,11 +34,21 @@ Mid-conversation is fine: the generic block needs no finished work. If the quest
 
 | Mode | When (any one is enough) | Block |
 |---|---|---|
-| **Task** | This conversation opened a PR/MR, or the current branch has commits ahead of its base | Verdict block (Steps 2-3) |
+| **Task** | An **open** PR/MR from this conversation, or work on this branch that is not yet on its base | Verdict block (Steps 2-3) |
 | **Generic** | Anything else | Generic block (Step 3b) |
 
 A conversation that produced a PR *and* a decision the user must remember gets the task
 block; the decision goes under `NEEDS YOU`.
+
+**Already merged is not task mode.** All three verdicts answer one question — should this be
+merged — so a conversation whose PRs have all landed has no verdict to give, and Step 5 would
+hand back `gh pr merge` on a merged PR. Take the generic block: what holds now, what was
+decided, what is still open.
+
+**Do not read "not yet on its base" from `git log BASE..HEAD`.** After a squash merge the
+branch's original commits are not ancestors of the trunk, so that range still lists them on
+work that landed perfectly, and the mode flips to Task on a finished conversation. Check the
+PR state, or compare content the way `start-issue/trunk.md` does.
 
 ---
 
