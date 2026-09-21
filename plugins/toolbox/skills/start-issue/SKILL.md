@@ -83,11 +83,10 @@ Not every tracker has workflow states — GitHub and GitLab issues are only open
 
 ## Step 4 — Triage: simple or complex
 
-**Check for a shaping bundle first.**
+**Check for a shaping bundle first.** Use the issue key already resolved in Step 0 — not `git branch --show-current`, which Step 2 already established prints the trunk here, not the worktree's branch.
 
 ```bash
-TICKET_ID=$(git branch --show-current | grep -oiE "${TICKET_PREFIX:-[A-Z]{2,}}-[0-9]+" | tr '[:lower:]' '[:upper:]')
-BUNDLE="${SHAPING_DIR}/${TICKET_ID}.md"
+BUNDLE="${SHAPING_DIR}/<KEY>.md"
 [ -n "$SHAPING_DIR" ] && [ -f "$BUNDLE" ] && cat "$BUNDLE"
 ```
 
