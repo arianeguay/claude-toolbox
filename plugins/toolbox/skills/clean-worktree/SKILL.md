@@ -117,7 +117,11 @@ git rev-parse <branch>   # or origin/<branch> if the remote copy is still live
 ```
 
 - tip == `headRefOid` → nothing trailing. Stays a **merged candidate**.
-- tip != `headRefOid` → **not a candidate under the "merged" label**, even though the gate above passed. List it in a new **"commits after the merge"** group instead:
+- tip != `headRefOid` **but the tip is itself an ancestor of the trunk** → the trailing commits reached the trunk by another path (a direct push, a later PR that carried them). Nothing is at risk. Stays a **merged candidate**, annotated in the preview as `tip is N commits past PR #n — all on origin/$TRUNK`. Measured 2026-09-21: a branch sat one commit past its MR's sha and that commit was already on the trunk; the tip check alone would have parked a fully-landed branch under "commits after the merge" and left it undeletable forever.
+  ```bash
+  git merge-base --is-ancestor <branch> "origin/$TRUNK" && echo TIP_REACHED
+  ```
+- tip != `headRefOid` and the tip is **not** an ancestor of the trunk → **not a candidate under the "merged" label**, even though the gate above passed. List it in a new **"commits after the merge"** group instead:
   ```bash
   git log --oneline "<headRefOid>..<branch>"     # the trailing commits
   ```
@@ -204,6 +208,7 @@ Print what was removed and what was skipped (and why). Re-run `git worktree list
 | Treating every `[gone]` branch as "merged to the trunk" | `[gone]` fires on a merge into ANY base, including a dead intermediate branch (stacked PRs). Gate on `git merge-base --is-ancestor <branch> "origin/$TRUNK"` first. |
 | Force-deleting a `[gone]` branch that fails `--is-ancestor` without checking the tree diff | That check alone doesn't distinguish squash-merged (safe) from stranded (not). Disambiguate with `git diff "origin/$TRUNK"..<branch> --quiet` before deciding. |
 | Deleting a merged branch without checking its tip against the PR's `headRefOid` | A branch can gain commits after its own PR merges. Compare `git rev-parse <branch>` to `gh pr list --json headRefOid` (matched by `headRefName`) before deleting — trailing commits are the last copy once the remote is gone. |
+| Parking every tip≠`headRefOid` branch under "commits after the merge" | Check the tip against the trunk too: `git merge-base --is-ancestor <branch> origin/$TRUNK`. Trailing commits that already reached the trunk by another path are not a loss — that branch is a merged candidate with a note, not a recovery case. |
 | Matching a ticket id against trunk commit messages (`git log --grep`) to find merged branches | Matches any commit whose body mentions the ticket, not just the one that landed it — wrong, not just weak, in a repo whose commits cross-reference other tickets. Ask the host (`gh pr list --state all`) instead. |
 | Reading `git diff "origin/$TRUNK"..<branch>` as DIFF = "not merged" | It reads DIFF for nearly every branch once the trunk has simply moved ahead. It's a "did anything change" signal, not a merged/unmerged one — use it only when no host CLI exists, and say so in the preview. |
 | An empty "merged" preview under a remote that doesn't delete branches on merge | Reads as "nothing to clean" when it may mean "`[gone]` never fires here." Sweep with `gh pr list --state all` before concluding there's nothing to do. |

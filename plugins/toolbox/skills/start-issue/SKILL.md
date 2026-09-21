@@ -34,6 +34,14 @@ Read the full issue: title, description, labels, state, estimate, priority, rela
 
 **A blocked issue does not start.** If an open blocker exists, say which one and stop. That is the only step that aborts the flow silently-free.
 
+**An issue that already carries an MR/PR does not start from scratch.** Read the issue's attachments before Step 2: a PR/MR link there means work exists, and the tracker's own state may be lying about it. Check that PR's state with the host CLI:
+
+- **Merged** → run the check in `trunk.md`. Work on the trunk → set the tracker's done state (Step 3's adapter, matched by the `completed` type), report with `verdict already shipped — <PR>, merged <date>`, and skip Steps 2-7. Work NOT on the trunk → the recovery in `trunk.md`, never a fresh build of the same spec.
+- **Open** → resume: attach the worktree to that existing branch (the second shape in Step 2). Never cut a second worktree for the same issue.
+- **Closed unmerged** → say so, then continue as a fresh start.
+
+The stale worktree is not the signal — a worktree whose branch merged days ago looks exactly like one mid-build, and its branch being `[gone]` on the remote reads the same way. Measured 2026-09-21: an issue sat in progress six days after its MR merged, with that worktree still attached; the flow was one `git worktree add` from re-doing shipped work.
+
 **Backfill before building.** If the user's `CLAUDE.md`/`PROFILE.md` defines an issue standard (title form, description sections, required labels, estimate, priority), bring the issue up to it now, in one save, without asking. No standard defined → skip this, don't invent one.
 
 **Draft rewrites through the environment's issue skill.** Both the backfill above and the re-scope below rewrite the issue's body, so they answer to whatever already owns issue prose here: check the available-skills list for a project- or user-level issue-creation skill (e.g. `linear-issue-creator`, a repo's own `new-ticket`) and let it shape the description — headings, forbidden sections, tone, and its provenance footer. It encodes team conventions this skill cannot know. None installed → follow the `CLAUDE.md` standard directly and end the body with `<sub>🤖 Rewritten with <code>/start-issue</code></sub>`, so a later reader can tell machine-drafted scope from the reporter's own words.
