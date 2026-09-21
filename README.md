@@ -38,6 +38,10 @@ plugins/toolbox/       # the plugin itself — what `source: "./plugins/toolbox"
     issues-candidate/    # end-of-task sweep for follow-up work worth filing (trackers/ per host)
     is-it-down/          # check live status of gitlab/github/anthropic/etc via their status-page APIs
     message-other-session/ # hand off a settled decision to a concurrent session before it redoes the work
+    shape/               # Shape Up entry point — triages a ticket trivial/medium/large, routes onward, persists the shaping bundle
+    decompose/           # split a large ticket into independently shippable sub-tickets against a checkable quality bar
+    rabbit-holes/        # scan a ticket's technical/data/user-flow/coordination risks against a fixed 4-dimension grid
+    retrospect/          # post-ship review (5-10 min) comparing shaped vs. actual, logs a calibration data point
     plan/                # code-anchored implementation plan, bridging shaping decisions to build
     start-issue/         # bare issue link → branch/worktree, In Progress, build, PR, In Review (trackers/ per host, trunk.md)
     start-milestone/     # whole milestone → order by verification cost, run start-issue per issue, sequence the merges (trunk-checked)

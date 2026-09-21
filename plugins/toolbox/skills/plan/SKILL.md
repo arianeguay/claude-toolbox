@@ -25,7 +25,7 @@ TICKET_ID=$(git branch --show-current | grep -oiE "${TICKET_PREFIX:-[A-Z]{2,}}-[
 BUNDLE="${SHAPING_DIR}/${TICKET_ID}.md"
 [ -n "$SHAPING_DIR" ] && [ -f "$BUNDLE" ] && cat "$BUNDLE"
 ```
-File found → ingest it as Option A context.
+File found → ingest it as Option A context, and flip its frontmatter `status: shaped` to `status: in_progress`.
 
 **Fallback — no shaping context:** covers trivial tickets that skip shaping. Take whatever input is available:
 - A ticket id (from the branch or the message) → read the ticket from the tracker for its title and description.
