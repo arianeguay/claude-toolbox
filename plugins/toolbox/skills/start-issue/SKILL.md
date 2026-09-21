@@ -83,6 +83,17 @@ Not every tracker has workflow states — GitHub and GitLab issues are only open
 
 ## Step 4 — Triage: simple or complex
 
+**Check for a shaping bundle first.**
+
+```bash
+TICKET_ID=$(git branch --show-current | grep -oiE "${TICKET_PREFIX:-[A-Z]{2,}}-[0-9]+" | tr '[:lower:]' '[:upper:]')
+BUNDLE="${SHAPING_DIR}/${TICKET_ID}.md"
+[ -n "$SHAPING_DIR" ] && [ -f "$BUNDLE" ] && cat "$BUNDLE"
+```
+
+- **Bundle found:** use its `classification` field instead of re-deriving simple/complex below. `trivial`/`medium` → fall through to the criteria below as normal. `large` → this issue is expected to already be one of `toolbox:decompose`'s sub-tickets (created with a parent link) — plan it directly via `toolbox:plan`, skipping the criteria below. If it's marked `large` but carries no parent link, say so explicitly — decomposition may not have happened yet, and planning it flat risks the exact problem shaping exists to avoid.
+- **No bundle:** the criteria below decide as they do today, with one addition to the Complex list: the issue body lists multiple distinct deliverables and has no parent ticket → recommend running `toolbox:shape` before planning, rather than silently planning a ticket that should have been decomposed first.
+
 Read enough code to answer this honestly; don't classify from the title.
 
 **Simple — build directly.** All of:
