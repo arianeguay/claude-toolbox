@@ -155,9 +155,37 @@ hindsight), produces a short gap summary + 1-2 adjustments for next time. Stays 
 from `what-did-we-learn` (that skill explicitly scopes itself to generalizable-knowledge
 capture, not estimate calibration) — different trigger, different questions, no overlap.
 
+## toolbox:start-issue touch-up
+
+`start-issue` Step 4 (simple/complex build-triage) doesn't know shaping bundles exist —
+`toolbox:plan` already checks `SHAPING_DIR`, `start-issue` doesn't, so the two entry points
+can disagree. Add a bundle check at the top of Step 4, before the existing simple/complex
+heuristic:
+
+```bash
+BUNDLE="${SHAPING_DIR}/${TICKET_ID}.md"
+[ -n "$SHAPING_DIR" ] && [ -f "$BUNDLE" ] && cat "$BUNDLE"
+```
+
+- **Bundle found**: use its `classification` instead of re-deriving simple/complex.
+  `trivial`/`medium` → fall through to the existing simple/complex criteria as today.
+  `large` → this issue is expected to already be one of `decompose`'s sub-tickets (created
+  with a parent link) — plan it directly. If it has no parent link despite being marked
+  `large`, say so; decomposition may not have happened yet.
+- **No bundle**: today's heuristic is unchanged, but the "Complex" criteria list gains one
+  line — multiple distinct deliverables in the issue body and no parent ticket → recommend
+  `toolbox:shape` before planning, rather than silently planning a ticket that should have
+  been decomposed first.
+
+Rest of `start-issue` (branch/worktree, state transitions, build, ship, report) is
+untouched.
+
 ## Testing / verification
 
 Markdown-only skills, no build. Verification is manual dry-run: walk `toolbox:shape`
 through a fake ticket end-to-end (trivial path, medium+rabbit-holes path, large+decompose
 path), confirm the bundle it writes parses correctly as input to a `toolbox:plan` dry run,
 and confirm `toolbox:context-validator` reads the `## Scope` section correctly against it.
+Also confirm `start-issue`'s Step 4 bundle check picks up a `large`-classified bundle and
+skips its own heuristic, and that the no-bundle path still recommends `shape` for a
+multi-deliverable issue.
