@@ -160,7 +160,9 @@ Next step:
 [per the routing table below]
 ```
 
-The counter-argument section is **mandatory**. It externalizes the doubt so the verdict's fragility is visible without needing intuition to spot it.
+The counter-argument section is **mandatory**. It externalizes the doubt so the verdict's fragility is visible without needing intuition to spot it. Keep the whole triage output compact — cap it around 15 lines total.
+
+Never ask the user a clarifying question before delivering the verdict. Triage runs on the ticket as it stands — if something is genuinely unclear, that unclarity is itself the signal; it goes in the counter-argument, not in a question asked first.
 
 In Claude Code, if the counter-argument is checkable in the code (e.g. "this would be medium if component X already exists"), settle it by reading the code before routing — don't route on a guess a `grep` could confirm.
 
