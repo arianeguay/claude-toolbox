@@ -89,6 +89,16 @@ build."]
 escalates past what am-i-stuck's diagnostic alone resolves. Contains: blocker summary, time
 invested before reshape, what changes, what's still valid from the initial shaping, new
 first step, one line for retrospect's benefit.]
+
+## Retrospect — <ISO timestamp>
+[Appended by `retrospect` post-ship, alongside flipping frontmatter to `status: shipped`.
+Contains: gaps observed (classification / rabbit holes / scope), dominant cause, learning,
+pattern to watch, at most one flow adjustment.]
+
+## Patterns observed
+[Optional, appended by `retrospect` when a recurring pattern is worth keeping but the user
+declines persisting it to a memory/preference mechanism. Append-only, like the two
+sections above — safe for `plan`/`context-validator`, which don't read past `## Reshape`.]
 ```
 
 `context-validator` already reads `## Scope` for ship/don't-ship and honors a `## Reshape`
