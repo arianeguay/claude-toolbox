@@ -70,10 +70,10 @@ case "$REMOTE" in
   *)        CLI=      ;;
 esac
 
-gh pr list --state all --limit 1000 --json number,state,headRefName,mergedAt,headRefOid
+gh pr list --state all --limit 1000 --json number,state,headRefName,mergedAt,headRefOid,mergeCommit
 ```
 
-Match by `headRefName`. A branch with a `MERGED` PR gets a `headRefOid` from this — use it, not the branch's live tip, for the gates below. No host CLI, or no matching PR → there's no `headRefOid`; the gates fall back to the branch's own tip, with the caveat noted at each step.
+Match by `headRefName`. A branch with a `MERGED` PR gets a `headRefOid` and a `mergeCommit.oid` (GitLab: `sha`, and `squash_commit_sha` when squashed) from this — use it, not the branch's live tip, for the gates below. No host CLI, or no matching PR → there's no `headRefOid`; the gates fall back to the branch's own tip, with the caveat noted at each step.
 
 **`[gone]` is not "merged to the trunk".** GitHub/GitLab delete the source branch on ANY merge — including a merge into a now-dead intermediate base branch (a stacked-PR shape: branch B merges into branch A, and A is itself already merged, or never merges at all). Treating `[gone]` alone as "merged" force-deletes the last copy of a stranded branch. Gate every `[gone]` branch on the trunk before calling it a candidate, reusing the check `../start-issue/trunk.md` already owns ("Did the work reach the trunk?" — a merge is a claim about the trunk's history, and only the trunk's history answers it). Run it against `headRefOid` from the PR lookup when one was found, **not** the branch's live tip — a branch with a trailing post-merge commit (see the tip check below) has a tip that was never in any PR, and checking that tip directly would read the trailing commit as part of the merge and misclassify "merged, plus one unlanded commit" as fully stranded:
 
@@ -83,12 +83,13 @@ git merge-base --is-ancestor "$REF" "origin/$TRUNK" && echo REACHED || echo NOT_
 ```
 
 - `REACHED` → the trunk has this content. **Merged candidate** — still subject to the tip check below.
-- `NOT_ANCESTOR` → not yet a verdict. A **squash**-merged branch also fails this check — the squash commit on the trunk has a new SHA, so the original commits are never its ancestors. Disambiguate with the tree-level check, same `$REF`:
+- `NOT_ANCESTOR` → not yet a verdict. A **squash**-merged branch also fails this check — the squash commit on the trunk has a new SHA, so the original commits are never its ancestors. Disambiguate by asking whether **the commit the PR created** is on the trunk. The squash commit *is* the PR's `mergeCommit`, so this answers squash and merge-commit alike, and a PR merged into a dead intermediate base fails it, because its merge commit lives on that base:
   ```bash
-  git diff "origin/$TRUNK".."$REF" --quiet && echo SQUASH_MERGED || echo STRANDED
+  git merge-base --is-ancestor "$MERGE_COMMIT_OID" "origin/$TRUNK" && echo SQUASH_MERGED || echo STRANDED
   ```
-  - empty diff (`SQUASH_MERGED`) → nothing this content adds is missing from the trunk. **Merged candidate** — still subject to the tip check below.
-  - non-empty diff (`STRANDED`) → **not a candidate.** The trunk is genuinely missing this content, and nothing will ever pull it forward — if it had a PR, that PR is merged and closed into a dead branch. List it under its own **"not on the trunk — recovery"** group instead of the deletable set:
+  Do **not** use a tree diff here when a merge commit is known. `git diff "origin/$TRUNK".."$REF"` reads non-empty as soon as any later PR touched the same files, so it calls merged branches stranded. Measured 2026-09-21 across three repos: 9 of 16 merged, on-trunk branches came out `STRANDED`, including the scoped `trunk.md` form. That form answers "did my change land" only right after the merge, before the trunk moves on. No `mergeCommit` available (no host CLI, or no PR found) → fall back to the tree diff with the weakness stated, as in the no-host-CLI section below.
+  - `SQUASH_MERGED` → the PR's own commit is in the trunk's history. **Merged candidate** — still subject to the tip check below.
+  - `STRANDED` → **not a candidate.** The trunk is genuinely missing this content, and nothing will ever pull it forward — if it had a PR, that PR is merged and closed into a dead branch. List it under its own **"not on the trunk — recovery"** group instead of the deletable set:
     ```bash
     git log --oneline "origin/$TRUNK..$REF"    # the commits the trunk is missing
     ```
