@@ -33,13 +33,13 @@ The line not to cross: reading code to confirm a scope claim is fine. Choosing t
 ## Activation
 
 Triggers automatically when:
-- A tracker URL is pasted (a Linear/Jira/GitHub/GitLab issue link)
-- A tracker key is mentioned in a work context (`ABC-1234`)
-- A pasted text block reads like a ticket (title + description)
+- A pasted text block reads like a ticket (title + description) with an ask to scope it
 - Phrases: "shape this", "help me scope this", "I was assigned to", "new ticket", "decompose this", "is this worth shaping"
 - Re-entry: "I'm stuck on ABC-1234", "this isn't working for ABC-1234", "coming back to the shaping of ABC-1234", "the rabbit hole is bigger than expected"
+- `toolbox:start-issue` recommends it (multi-deliverable issue, no parent ticket, no bundle found)
 
 Does not trigger for:
+- A bare tracker key or URL with no other instruction — `detect-issue-link.sh` already routes that to `toolbox:start-issue`
 - Creating a ticket from scratch — defer to an issue-creation skill
 - Questions about a ticket already in flight (debug, code review)
 
@@ -160,7 +160,7 @@ Next step:
 [per the routing table below]
 ```
 
-The counter-argument section is **mandatory**. It externalizes the doubt so the verdict's fragility is visible without needing intuition to spot it. Keep the whole triage output compact — cap it around 15 lines total.
+The counter-argument section is **mandatory**. It externalizes the doubt so the verdict's fragility is visible without needing intuition to spot it. Keep the whole triage output compact — never exceed 15 lines total.
 
 Never ask the user a clarifying question before delivering the verdict. Triage runs on the ticket as it stands — if something is genuinely unclear, that unclarity is itself the signal; it goes in the counter-argument, not in a question asked first.
 
@@ -218,11 +218,13 @@ If pushed back on, hold the line. Offer an explicit MVP: "ship the first two sub
 
 Write the bundle once the classification and routing are decided — not only at the very end of the session. For medium + 0 fuzzy zones, that's the final bundle. For medium + 1-2 fuzzy zones or large, write it now, before the routed skill runs, with what's known so far (classification, scope) and no `## Sub-tickets` / `## Rabbit holes` section yet — `toolbox:decompose` and `toolbox:rabbit-holes` are themselves bundle writers (per the shared contract below) and fill in their own section on the same file when they return. Either way, persist it so `toolbox:plan` (building) and `toolbox:retrospect` (later) can find it.
 
-Resolve the ticket id the same way `toolbox:plan` does:
-```bash
-TICKET_ID=$(git branch --show-current | grep -oiE "${TICKET_PREFIX:-[A-Z]{2,}}-[0-9]+" | tr '[:lower:]' '[:upper:]')
-```
-No match → derive a short slug from the ticket title instead, same fallback `plan` uses for a raw description.
+Resolve the ticket id — the key already known wins, in this order:
+- **Known ticket key** (fetched from the tracker in Step 1, or present in the pasted ticket text) → use it directly as `TICKET_ID`.
+- **No key in hand, but a branch already exists** (re-entry flow, mid-build) → parse it from the branch, secondary source only:
+  ```bash
+  TICKET_ID=$(git branch --show-current | grep -oiE "${TICKET_PREFIX:-[A-Z]{2,}}-[0-9]+" | tr '[:lower:]' '[:upper:]')
+  ```
+- **No ticket key anywhere** → derive a short slug from the ticket title instead, same fallback `plan` uses for a raw description.
 
 **Bundle format** — the shared contract `plan`, `context-validator` and `retrospect` all read. Don't improvise fields:
 
