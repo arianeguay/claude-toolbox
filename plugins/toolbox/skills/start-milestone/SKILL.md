@@ -147,8 +147,17 @@ moving on to the next:
 
 ```bash
 git -C <wt> fetch -q origin
-git -C <wt> merge-base --is-ancestor HEAD "origin/<default>"   # exit 0 = the trunk has it
+CHANGED=$(git -C <wt> diff --name-only "$(git -C <wt> merge-base origin/<default> HEAD)" HEAD)
+git -C <wt> diff --quiet origin/<default> HEAD -- $CHANGED     # exit 0 = the trunk has it
 ```
+
+**The content form, not `--is-ancestor`, and only here.** A batch does not tell you how each
+PR was merged, and a squash writes a *new* commit, so the branch's commits are never
+ancestors of the trunk and the ancestry check fails on work that landed perfectly.
+`trunk.md` carries both forms and says the content diff answers either case; this step
+inlines only the one that cannot report a drop that did not happen. Measured 2026-09-20 on a
+squash-merging repo: the merged PR's commit was not an ancestor of the trunk while its file
+sat on that trunk byte-identical.
 
 A PR reporting `MERGED` merged into *its base*, which in a batch is not always the trunk.
 Failing it stops the sequence — the next rebase would be onto a trunk that is missing the
