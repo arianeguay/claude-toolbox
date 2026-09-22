@@ -179,6 +179,12 @@ merges: one the integration closed while its proof is still pending goes back to
 state, its due date left as the not-before date. Observed 2026-09-15: two M6 issues went to
 Done at merge, days before the cron runs that were their proof.
 
+The same re-read catches the opposite drift. A Contributes-linked issue can be pulled back to
+In Progress by the integration's own PR events, a force-pushed rebase or the merge itself,
+after you set its review state. Put it back and read it once more. Observed 2026-09-22:
+STU-1572 sat In Review, its PR was rebased, force-pushed and merged, and the issue read In
+Progress with its proof still pending.
+
 An epic link adds one rule: move the epic itself to Done only after every child is Done
 (the ones skipped in Step 0 included). While one child is still In Review, the epic stays open.
 
