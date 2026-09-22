@@ -155,6 +155,8 @@ The key goes in the PR/MR **title** only for Resolves. The adapter gives the wor
 
 Adapter step. Set the in-review state and link the PR/MR back on the issue, through the tracker's native link (the Step 6 link-type line, a Linear attachment), not just a comment.
 
+**Re-read the state before reporting it.** A tracker integration reacts to the PR opening on its own schedule and can overwrite the state you just set: Linear's GitHub integration moved two of seven issues back to In Progress after the save had returned In Review (2026-09-22). The save's response is not the final state. Read the issue again and set In Review once more if it moved.
+
 ## Step 8 — Report
 
 Seven lines, no recap prose:
