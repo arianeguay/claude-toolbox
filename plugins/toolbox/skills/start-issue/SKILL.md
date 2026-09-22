@@ -121,6 +121,37 @@ Print the verdict and the criterion that decided it, in one line.
 
 **Complex path:** invoke `toolbox:plan`. Present the trade-off in the side-by-side pros/cons form with a recommendation, get one confirmation, then build. That confirmation is the *only* stop in the whole flow.
 
+## Step 4.5 — Check what else is already in flight
+
+Step 4 named the files this issue will touch. Before writing to any of them, find out who else
+is already writing to them. The tracker's open issues and the host's open PRs both answer it,
+and neither is Step 1's attachment check, which only covers *this* issue.
+
+```bash
+for n in $(gh pr list --state open --json number -q '.[].number'); do   # glab mr list
+  gh pr view "$n" --json number,headRefName,files \
+    -q '[.number, .headRefName, (.files[].path)] | @tsv'
+done
+```
+
+Search the tracker for open issues naming the same file or subsystem (the adapter's search call).
+A hit means one of three things, and the flow continues either way; say which:
+
+- **Already fixed there.** Drop that part of the scope, say so, and link the other issue. Do not
+  re-fix it: two PRs fixing one defect conflict on the exact lines both changed.
+- **Same file, different lines.** Build as planned, and expect a rebase rather than a clean merge.
+- **Same lines, both open.** Propose a merge order instead of resolving it unilaterally, and tell
+  the other session (`toolbox:message-other-session`). Work already merged is rebased onto, never
+  rewritten.
+
+Measured 2026-09-22: three open PRs edited one 40-line script the same afternoon, two of them on
+the same lines, and one carried a flag the other author had not found. Nothing surfaced the
+overlap until `toolbox:issues-candidate` deduped against the tracker at the very end, after the PR
+body was written. Finding it here costs one command; finding it at Step 6 costs a rewritten diff.
+
+Cheap enough to run on a simple issue too. Skip it only when the diff creates new files and
+touches nothing that already exists.
+
 ## Step 5 — Build
 
 Small, logical commits — one per change, not one per session. Commit as you go, not in a pile at the end.
