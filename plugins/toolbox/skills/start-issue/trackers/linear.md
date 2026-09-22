@@ -58,6 +58,14 @@ Pass `assignee` only if the issue is unassigned. **Never combine this call with 
 duplicate url` warning and left the state unapplied, with no error raised (STU-1474).
 Re-read (`get_issue`) after saving and stop the flow if the state did not change.
 
+**Step 7 sets the state after the link, not before.** The integration applies the team's
+"PR opened" automation when it processes the PR event, which lands after the PR exists and
+overwrites any state set ahead of it. On arr#45 an In Review saved with `attachments: []`
+read back In Progress one call later, as the integration's attachment appeared (STU-1648).
+Run the link step below first: poll `get_issue` for up to ~30 s until the PR URL shows in
+`attachments`, fall back to the manual `links` save only then, and set the review state
+last.
+
 ## Link the PR back (Step 7)
 
 Read first, write only if missing — Linear's own GitHub/GitLab integration usually attaches
