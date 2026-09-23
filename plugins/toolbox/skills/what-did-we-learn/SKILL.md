@@ -33,7 +33,14 @@ If the user just shipped a tracked task and you have a calibration retrospective
 **Don't use** when:
 - Session was a one-off lookup or trivial fix
 - User is mid-task — wait until the work is done
-- Already invoked once in the same session (don't re-run)
+- Already run over this material, with nothing new landed since the last pass
+
+The bar is new material, not a fresh session. A long session that keeps producing after a
+capture has new material by definition, and the first pass could not have seen it. Observed
+2026-09-23: a session captured three memories, then ran three more hours and produced the
+findings worth keeping most (a platform where four commands returned success without
+effect, and two blind spots in a drift check). Refusing the second pass on "same session"
+would have lost all of it.
 
 ---
 
