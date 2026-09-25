@@ -91,7 +91,7 @@ Per candidate, work out and record:
 - **Priority** — never "none"; justify in one clause
 - **Estimate** — always set, rough is fine
 - **Due date** — not a deadline: the earliest date the issue is actually workable (a wait-out condition clears, a floor/cooldown expires, a scheduled event happens first). If a candidate is blocked on time passing rather than blocked on other work, compute that date and put it in the tracker's due-date field at creation *(see tracker file)* — it's what tells a future pass when to pick the issue up. No such gate → leave it unset; don't invent one to fill the field.
-- **Evidence** — `file:line` from the diff, or the conversation moment it surfaced
+- **Evidence** — `file:line` from the diff, or the conversation moment it surfaced. A fact about a host (a path, device, mount point or disk) is evidence too: resolve it before writing it (`ls -ld`, `readlink -f`, `df`, `findmnt`), or mark it inline as unverified. An unresolved one reads exactly like a measured one. Measured 2026-09-20: STU-1509 built its priority on the wear counters of the system SSD, while `/var/lib/docker` was a symlink to a spinning disk.
 - **Body** — symptom · where · why it's out of scope here · what a fix involves
 - **Relations** — encode ordering as `blockedBy`, never as prose in the body
 - **Labels / project / cycle** — per the repo's own conventions (check `CLAUDE.md`/`AGENTS.md` for required label groups; on some repos every issue needs an execution-environment label)
