@@ -199,8 +199,10 @@ base      <base>  [not the trunk — see below]
 verdict   simple | complex — <deciding criterion>
 link      Resolves | Contributes | Related: <deciding criterion>
 PR        <url>
-state     In Review
+state     <as read back from the tracker after Step 7>
 ```
+
+`state` is the tracker's answer to the last read, never the state the flow set. Anything but In Review is the finding: report it as read.
 
 `base` is read back from the PR, not from what Step 2 intended:
 
