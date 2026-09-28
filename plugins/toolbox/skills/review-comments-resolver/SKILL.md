@@ -121,7 +121,11 @@ Run the repo's own checks on touched files (detect: `npm run check`/`type-check`
 
 **8B — resolve** every processed thread (`✅` fixed, `🗑️` triaged+commented, `📋` captured+commented), across all sources. **Do NOT resolve `❓ Clarify` threads** — they stay open for the reviewer's reply. Don't resolve threads not processed this session.
 
-**CodeRabbit threads are the exception: never resolve them by hand.** CodeRabbit approves the PR/MR once its own findings are resolved, and repos that require that approval gate on CodeRabbit resolving them itself; a hand-resolved thread gets reopened by the gate (seen on GitLab: "only CodeRabbit may resolve its own findings"). Instead, reply in the thread addressed to `@coderabbitai`: for `✅`, name the fixing commit and ask it to verify and resolve; for `🗑️`/`📋`, give the rationale so it can re-judge. Push the fix first, since CodeRabbit re-checks against the pushed head. Leave the thread open; CodeRabbit closes it. If the branch was rebased after a fix, cite the new SHA.
+**CodeRabbit threads are the exception: never resolve them by hand.** CodeRabbit approves the PR/MR once its own findings are resolved, and repos that require that approval gate on CodeRabbit resolving them itself; a hand-resolved thread gets reopened by the gate (seen on GitLab: "only CodeRabbit may resolve its own findings"). Don't `@coderabbitai` inside the thread either: CodeRabbit resolves, *then* posts its answer in the same thread, and on GitLab any new note reopens a resolved discussion, so it undoes itself. Instead:
+1. Post the 8A rationale in each dismissed/deferred CodeRabbit thread **without** mentioning `@coderabbitai` (a mention makes it answer in-thread).
+2. Push every fix, so it re-checks against the pushed head.
+3. Once every CodeRabbit finding is handled, post **one general PR/MR comment** (not a thread reply): `@coderabbitai resolve`. It resolves all its threads and answers in that general comment, so nothing lands back in a thread.
+4. Poll the threads for ~1 min to confirm they stayed resolved.
 
 **8C — sign every posted reply.** Append this footer, verbatim, as the last line of each thread reply (8A dismissals, 8B tracker notes, and 6C clarify questions alike):
 

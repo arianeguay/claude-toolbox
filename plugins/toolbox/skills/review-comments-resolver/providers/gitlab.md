@@ -43,7 +43,10 @@ glab api "projects/:id/merge_requests/$IID/discussions/$DISCUSSION_ID" \
   --method PUT -f resolved=true
 ```
 (Never resolve a `❓ Clarify` discussion — leave it open for the reviewer.)
-(Never resolve a CodeRabbit thread either — reply with `@coderabbitai` via the reply call above and let it resolve its own finding; see SKILL.md 8B.)
+(Never resolve a CodeRabbit thread either, and don't `@coderabbitai` inside it — see SKILL.md 8B. Once all its findings are handled, post one general comment:)
+```bash
+glab api "projects/:id/merge_requests/$IID/notes" --method POST -f body="@coderabbitai resolve"
+```
 
 ## Auth / errors
 - Not authenticated → `glab auth login`.
