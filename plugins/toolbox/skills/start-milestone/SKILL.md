@@ -198,7 +198,7 @@ finished with one issue quietly still open is the failure this skill exists to p
 
 ## Long unattended runs
 
-The expensive issue is usually a paid measurement, and it is where a batch dies. Six things,
+The expensive issue is usually a paid measurement, and it is where a batch dies. Seven things,
 all of them learned the hard way:
 
 - **Detach it from the session.** `setsid nohup <cmd> > <log> 2>&1 < /dev/null &`. A
@@ -217,6 +217,13 @@ all of them learned the hard way:
   ```
   Run it detached; it releases itself when the job exits. It does not cover a flat
   battery — read `/sys/class/power_supply/A*/online` and say so out loud.
+- **Write what a run produces somewhere a reboot keeps.** Logs, traces and results go to
+  a home directory or the repo's results folder, never `/tmp` or the session scratchpad,
+  which a reboot empties. On a machine that may not last the night, push each branch the
+  moment it is committed rather than at the end. Measured 2026-09-28: a laptop on battery
+  died mid-batch, a finished smoke's result in the scratchpad went with it and had to be
+  rerun, and two committed branches sat unpushed until morning; the burn-in running
+  detached on another host lost nothing because it wrote under its home directory.
 - **A rate measured across a sleep is not a rate.** Mark the count and the clock at a known
   awake moment and re-derive; an estimate taken across a suspend was 3x pessimistic in the
   session this was written from.
