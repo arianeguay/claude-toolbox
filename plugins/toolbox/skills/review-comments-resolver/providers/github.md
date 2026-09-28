@@ -51,6 +51,10 @@ gh api graphql -F t="$THREAD_ID" -f query='
 mutation($t:ID!){ resolveReviewThread(input:{threadId:$t}){ thread{ isResolved } } }'
 ```
 (Never resolve a `❓ Clarify` thread — leave it open for the reviewer.)
+(Never resolve a CodeRabbit thread either, and don't `@coderabbitai` inside it — see SKILL.md 8B. Once all its findings are handled, post one general comment:)
+```bash
+gh pr comment "$PR" --body "@coderabbitai resolve"
+```
 
 ## Auth / errors
 - Not authenticated → `gh auth login`.

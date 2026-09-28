@@ -43,6 +43,11 @@ glab api "projects/:id/merge_requests/$IID/discussions/$DISCUSSION_ID" \
   --method PUT -f resolved=true
 ```
 (Never resolve a `❓ Clarify` discussion — leave it open for the reviewer.)
+(Never resolve a CodeRabbit thread either, and don't `@coderabbitai` inside it — see SKILL.md 8B. Once all its findings are handled, post one general comment:)
+```bash
+glab api "projects/:id/merge_requests/$IID/notes" --method POST -f body="@coderabbitai resolve"
+```
+Then, once CodeRabbit answers, resolve the discussion that now holds that note (find it by the note id in `…/discussions`, then use the resolve call above). It's your discussion, not a finding.
 
 ## Auth / errors
 - Not authenticated → `glab auth login`.

@@ -121,6 +121,13 @@ Run the repo's own checks on touched files (detect: `npm run check`/`type-check`
 
 **8B — resolve** every processed thread (`✅` fixed, `🗑️` triaged+commented, `📋` captured+commented), across all sources. **Do NOT resolve `❓ Clarify` threads** — they stay open for the reviewer's reply. Don't resolve threads not processed this session.
 
+**CodeRabbit threads are the exception: never resolve them by hand.** CodeRabbit approves the PR/MR once its own findings are resolved, and repos that require that approval gate on CodeRabbit resolving them itself; a hand-resolved thread gets reopened by the gate (seen on GitLab: "only CodeRabbit may resolve its own findings"). Don't `@coderabbitai` inside the thread either: CodeRabbit resolves, *then* posts its answer in the same thread, and on GitLab any new note reopens a resolved discussion, so it undoes itself. Instead:
+1. Post the 8A rationale in each dismissed/deferred CodeRabbit thread **without** mentioning `@coderabbitai` (a mention makes it answer in-thread).
+2. Push every fix, so it re-checks against the pushed head.
+3. Once every CodeRabbit finding is handled, post **one general PR/MR comment** (not a thread reply): `@coderabbitai resolve`. It resolves all its threads and answers in that general comment, so nothing lands back in a thread.
+4. On GitLab, CodeRabbit's "Action performed" reply turns that general comment into a thread of its own, which is open. It's your thread, not a CodeRabbit finding, so resolve it by hand (the gate leaves it alone).
+5. Poll the threads for ~1 min to confirm none reopened.
+
 **8C — sign every posted reply.** Append this footer, verbatim, as the last line of each thread reply (8A dismissals, 8B tracker notes, and 6C clarify questions alike):
 
 ```markdown
@@ -132,7 +139,7 @@ The note is authored by whoever owns the host token — normally the human runni
 
 Do **not** substitute a bot identity for the footer unless the user explicitly asks. Posting as a separate bot account (a GitLab group/project access token, a GitHub App) moves authorship off the person who approved each call, which reads as "a bot decided this" and is less true. If the user does want that, it is a token swap, not a skill change: scope the alternate token to the reply/resolve calls only (`GITLAB_TOKEN=$BOT_TOKEN glab api …`) so PR/MR creation stays under their own identity, and keep the secret out of committed config — a keychain entry read at call time, never `settings.json` env.
 
-Report: `Resolved {N} thread(s) ({X} CodeRabbit, {Y} Bugbot, {Z} human).`
+Report: `Resolved {N} thread(s) ({Y} Bugbot, {Z} human); handed {X} back to CodeRabbit to resolve.`
 
 ---
 
