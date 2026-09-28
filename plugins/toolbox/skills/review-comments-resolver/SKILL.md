@@ -121,6 +121,8 @@ Run the repo's own checks on touched files (detect: `npm run check`/`type-check`
 
 **8B — resolve** every processed thread (`✅` fixed, `🗑️` triaged+commented, `📋` captured+commented), across all sources. **Do NOT resolve `❓ Clarify` threads** — they stay open for the reviewer's reply. Don't resolve threads not processed this session.
 
+**CodeRabbit threads are the exception: never resolve them by hand.** CodeRabbit approves the PR/MR once its own findings are resolved, and repos that require that approval gate on CodeRabbit resolving them itself; a hand-resolved thread gets reopened by the gate (seen on GitLab: "only CodeRabbit may resolve its own findings"). Instead, reply in the thread addressed to `@coderabbitai`: for `✅`, name the fixing commit and ask it to verify and resolve; for `🗑️`/`📋`, give the rationale so it can re-judge. Push the fix first, since CodeRabbit re-checks against the pushed head. Leave the thread open; CodeRabbit closes it. If the branch was rebased after a fix, cite the new SHA.
+
 **8C — sign every posted reply.** Append this footer, verbatim, as the last line of each thread reply (8A dismissals, 8B tracker notes, and 6C clarify questions alike):
 
 ```markdown
@@ -132,7 +134,7 @@ The note is authored by whoever owns the host token — normally the human runni
 
 Do **not** substitute a bot identity for the footer unless the user explicitly asks. Posting as a separate bot account (a GitLab group/project access token, a GitHub App) moves authorship off the person who approved each call, which reads as "a bot decided this" and is less true. If the user does want that, it is a token swap, not a skill change: scope the alternate token to the reply/resolve calls only (`GITLAB_TOKEN=$BOT_TOKEN glab api …`) so PR/MR creation stays under their own identity, and keep the secret out of committed config — a keychain entry read at call time, never `settings.json` env.
 
-Report: `Resolved {N} thread(s) ({X} CodeRabbit, {Y} Bugbot, {Z} human).`
+Report: `Resolved {N} thread(s) ({Y} Bugbot, {Z} human); handed {X} back to CodeRabbit to resolve.`
 
 ---
 
