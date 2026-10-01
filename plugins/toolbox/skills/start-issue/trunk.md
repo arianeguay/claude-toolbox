@@ -43,6 +43,25 @@ the scoped content diff for squash; when in doubt, the content diff answers both
 diff then reported `NOT ON TRUNK` on two more repos whose PRs had landed cleanly, because an
 unrelated PR merged into the same trunk during the same window.
 
+**Scoping by file is not enough when siblings share a file.** In a batch, sibling PRs often
+each add a line to the same README or index. The trunk then holds every sibling's line, so
+that file differs from each branch's copy, and the scoped diff reports a drop on all of them
+at once. Exclude the files a sibling also changed from `$CHANGED`, and check each of those by
+the lines the branch added instead:
+
+```bash
+F=<shared file>
+git -C "$WT" diff "$(git -C "$WT" merge-base "origin/$TRUNK" HEAD)" HEAD -- "$F" \
+  | sed -n 's/^+\([^+]\)/\1/p' | while IFS= read -r l; do
+      git -C "$WT" show "origin/$TRUNK:$F" | grep -qxF -- "$l" || echo "MISSING: $l"
+    done                                                      # no output = the trunk has it
+```
+
+Observed 2026-10-01: three `ops` PRs from one milestone each added an entry to `README.md` and
+`scripts-host/README.md`. All three reported `NOT ON TRUNK` after merging, yet all three had
+landed: the files outside the READMEs matched exactly, and every added README line was on the
+trunk.
+
 **Ask git, do not grep git's output.** The obvious form —
 `git branch -r --contains <sha> | grep -q "origin/$TRUNK"` — matches on substring, so any
 sibling ref whose name starts with the trunk's (`origin/main-experiment`, `origin/mainline`,
