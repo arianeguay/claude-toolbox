@@ -44,6 +44,8 @@ The stale worktree is not the signal — a worktree whose branch merged days ago
 
 **An issue that ships no code does not get a worktree.** A design issue (the body says so, or its deliverable is a written decision) or one whose build was already split into a related issue has nothing left to branch for. Skip Steps 2 and 3, check each remaining acceptance criterion against live evidence, leave the state alone, and report which criteria are still open, one line each, in place of Step 8. Measured 2026-09-22 on STU-1587: In Review with no PR, its build split into STU-1632, and the one open criterion (a Sonarr hook firing on a real import) needed a check, not code. Only a close read of the body kept the flow from cutting a worktree for it.
 
+**A public deliverable asks one question before it builds.** When the change lands on a surface anyone can read (a public site, a public repository, a published document), ask the user what it reveals about where things are kept and how they are protected, before Step 2, even when the issue itself names the page. Accurate is not the same as safe to publish. Observed 2026-10-04 on STU-1858: a compliance issue asked for a public privacy policy; the page stated truthfully where the bank data lived and how it was guarded, and was reverted the day it went live.
+
 **Backfill before building.** If the user's `CLAUDE.md`/`PROFILE.md` defines an issue standard (title form, description sections, required labels, estimate, priority), bring the issue up to it now, in one save, without asking. No standard defined → skip this, don't invent one.
 
 **Draft rewrites through the environment's issue skill.** Both the backfill above and the re-scope below rewrite the issue's body, so they answer to whatever already owns issue prose here: check the available-skills list for a project- or user-level issue-creation skill (e.g. `linear-issue-creator`, a repo's own `new-ticket`) and let it shape the description — headings, forbidden sections, tone, and its provenance footer. It encodes team conventions this skill cannot know. None installed → follow the `CLAUDE.md` standard directly and end the body with `<sub>🤖 Rewritten with <code>/start-issue</code></sub>`, so a later reader can tell machine-drafted scope from the reporter's own words.
@@ -121,7 +123,7 @@ Read enough code to answer this honestly; don't classify from the title.
 
 Print the verdict and the criterion that decided it, in one line.
 
-**Complex path:** invoke `toolbox:plan`. Present the trade-off in the side-by-side pros/cons form with a recommendation, get one confirmation, then build. That confirmation is the *only* stop in the whole flow.
+**Complex path:** invoke `toolbox:plan`. Present the trade-off in the side-by-side pros/cons form with a recommendation, get one confirmation, then build. That confirmation and Step 1's public-deliverable question are the only stops in the whole flow.
 
 ## Step 4.5 — Check what else is already in flight
 

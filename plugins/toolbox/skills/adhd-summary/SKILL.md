@@ -96,17 +96,17 @@ reason — never as a footnote.
 Fixed shape. Do not improvise a nicer one.
 
 ```
-<VERDICT> — <the one reason, under 10 words>
+<VERDICT>: <the one reason, under 10 words>
 
 <One line: what is true now that wasn't before. Plain words.>
 <One line: how it was verified, or "not verified".>
 
 NEEDS YOU (n)
-1. <imperative action> — <why, one line>
+1. <imperative action>: <why, one line>
 2. ...
 
 FILE THESE (n)
-1. <issue title> — <why it matters, one line>
+1. <issue title>: <why it matters, one line>
 2. ...
 
 CAPTURE: <see Step 4b>
@@ -133,16 +133,16 @@ Rules for the block:
 ## Step 3b — Emit the block (generic mode)
 
 ```
-<Topic in ~8 words> — <where it landed, one line>
+<Topic in ~8 words>: <where it landed, one line>
 
 KEEP (n)
 1. <fact or conclusion still useful tomorrow>
 
 DECIDED (n)
-1. <choice> — <why, one line>
+1. <choice>: <why, one line>
 
 OPEN (n)
-1. <question or blocker> — <who has to resolve it>
+1. <question or blocker>: <who has to resolve it>
 
 DO (n)
 1. <imperative action, first one doable in under 2 minutes>
@@ -228,16 +228,16 @@ it was a line in the block.
 ## Example
 
 ```
-DON'T MERGE YET — the suite never ran on this branch.
+DON'T MERGE YET: the suite never ran on this branch.
 
 Bake-off runs now say when a reviewer was missing a tool, instead of failing.
 Not verified: tests unrun since the last commit.
 
 NEEDS YOU (1)
-1. Decide: annotate or fail? Shipped as annotate — a failing gate would block comparisons.
+1. Decide: annotate or fail? Shipped as annotate, since a failing gate would block comparisons.
 
 FILE THESE (1)
-1. qa_coverage has the same blind spot — left alone deliberately, its reader has no tools.
+1. qa_coverage has the same blind spot, left alone deliberately: its reader has no tools.
 
 CAPTURE: run /toolbox:issues-candidate (1 unfiled: the qa_coverage blind spot)
 Skipped 6 things that don't need you.
