@@ -73,6 +73,7 @@ Drop a candidate if any holds:
 - **Speculative** — depends on a future that isn't scheduled.
 - **Taste-only refactor** — no bug, no cost, just a different shape you'd prefer.
 - **Belongs in this MR** — small, in scope, cheaper to fix now. Say so; don't file it.
+- **Solvable here** — the candidate asks another repo or team (backend, upstream service, another layer) for a change, but this repo could do it with what it already receives. Filing elsewhere is the last resort: before proposing one, read the response type, a live response if one is reachable, and any sibling code already rendering the same data, and name what you checked in the candidate's Evidence. Data already there → it's an issue for this repo, or nothing. Measured 2026-10-05: a backend issue asked for translatable change kinds that the frontend already received as structured fields, and already rendered translated on a neighbouring screen; it was canceled minutes after filing.
 
 Cap the proposal at **~6 candidates**. More than that means the bar was too low — re-filter.
 
