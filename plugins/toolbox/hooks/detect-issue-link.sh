@@ -12,7 +12,9 @@ prompt=$(cat | jq -r '.prompt // empty' 2>/dev/null) || exit 0
 [ -n "$prompt" ] || exit 0
 
 ref=$(printf '%s' "$prompt" | grep -oiEm1 \
-  'https?://(linear\.app/[^[:space:]]+/issue/[A-Za-z]+-[0-9]+|(www\.)?github\.com/[^[:space:]]+/issues/[0-9]+|[^[:space:]]*gitlab[^[:space:]]*/-/issues/[0-9]+)|\b[A-Z]{2,}-[0-9]+\b') || exit 0
+  'https?://(linear\.app/[^[:space:]]+/issue/[A-Za-z]+-[0-9]+|(www\.)?github\.com/[^[:space:]]+/issues/[0-9]+|[^[:space:]]*gitlab[^[:space:]]*/-/issues/[0-9]+)') \
+  || ref=$(printf '%s' "$prompt" | grep -oEm1 '\b[A-Z]{2,}-[0-9]+\b') || exit 0
+# The bare key is matched case-sensitively: under -i, a hostname like "hades-2" read as a key.
 
 # "Bare" = the reference plus at most a few words ("start this", "commence ça").
 rest=$(printf '%s' "$prompt" | sed "s|${ref//|/\\|}||" | tr -d '[:space:]')
