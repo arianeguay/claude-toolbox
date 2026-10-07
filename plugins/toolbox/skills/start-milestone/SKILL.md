@@ -151,13 +151,24 @@ CHANGED=$(git -C <wt> diff --name-only "$(git -C <wt> merge-base origin/<default
 git -C <wt> diff --quiet origin/<default> HEAD -- $CHANGED     # exit 0 = the trunk has it
 ```
 
-**The content form, not `--is-ancestor`, and only here.** A batch does not tell you how each
-PR was merged, and a squash writes a *new* commit, so the branch's commits are never
-ancestors of the trunk and the ancestry check fails on work that landed perfectly.
-`trunk.md` carries both forms and says the content diff answers either case; this step
-inlines only the one that cannot report a drop that did not happen. Measured 2026-09-20 on a
+**The content form first, never alone.** A batch does not tell you how each PR was merged,
+and a squash writes a *new* commit, so the branch's commits are never ancestors of the trunk
+and the ancestry check fails on work that landed perfectly. Measured 2026-09-20 on a
 squash-merging repo: the merged PR's commit was not an ancestor of the trunk while its file
 sat on that trunk byte-identical.
+
+But a batch is also exactly the case where the content form fails on its own: siblings edit
+the same file in different sections, the trunk's copy then holds every sibling's change, and
+it differs from each branch taken alone. So a failed content diff is not yet a drop. Before
+reporting one, run the two fallbacks in `trunk.md`, in this order:
+
+1. `--is-ancestor` — exact for a merge commit or a fast-forward.
+2. The added-lines check, on each file the content diff flagged — answers a squash and a
+   sibling edit alike. Only a line truly missing from the trunk reports a drop.
+
+Observed 2026-10-04 in the M12 batch: two PRs edited different sections of one `SKILL.md`,
+both merged by merge commit, and the content form reported both missing. Ancestry and the
+added lines each said both had landed.
 
 A PR reporting `MERGED` merged into *its base*, which in a batch is not always the trunk.
 Failing it stops the sequence — the next rebase would be onto a trunk that is missing the
