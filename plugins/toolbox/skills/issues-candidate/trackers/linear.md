@@ -21,6 +21,8 @@ list_issues  team: <team>  query: "<3-5 distinctive words from the title>"  limi
 ```
 Run one search per candidate. A hit in any non-`completed`/`canceled` state → drop the candidate and cite the existing key. Search title words, not your phrasing of the fix.
 
+The premise check is the same call with `query: "<entity name or alias>"`, once per name, across every team the entity's issues may live in (omit `team:`). Read each open hit's description, not just its title.
+
 ## Create (Step 6A)
 
 ```
