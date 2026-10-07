@@ -37,7 +37,7 @@ trunk moving for a reason that has nothing to do with this branch (a concurrent 
 landing during the same window) makes the diff non-empty and reports a drop that never
 happened. Scoping the diff to the files the branch actually changed answers "did my change
 land" instead of "are these two trees identical". Use `--is-ancestor` for merge and rebase,
-the scoped content diff for squash; when in doubt, the content diff answers both. Observed
+the scoped content diff for squash; when in doubt, start with the content diff and fall back as below. Observed
 2026-09-08: `gh pr merge --squash` on a clean PR reported `NOT ON TRUNK` under
 `--is-ancestor` while the trunk held all 13 files. Observed 2026-09-11: the unscoped content
 diff then reported `NOT ON TRUNK` on two more repos whose PRs had landed cleanly, because an
@@ -46,8 +46,9 @@ unrelated PR merged into the same trunk during the same window.
 **Scoping by file is not enough when siblings share a file.** In a batch, sibling PRs often
 each add a line to the same README or index. The trunk then holds every sibling's line, so
 that file differs from each branch's copy, and the scoped diff reports a drop on all of them
-at once. Exclude the files a sibling also changed from `$CHANGED`, and check each of those by
-the lines the branch added instead:
+at once. You rarely know in advance which files a sibling touched, so treat a failed scoped
+diff as a question, not a verdict: try `--is-ancestor` (exact for a merge commit), and if
+that fails too, check each file the scoped diff flagged by the lines the branch added:
 
 ```bash
 F=<shared file>
