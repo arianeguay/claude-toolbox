@@ -60,6 +60,8 @@ Cross-check each candidate worktree for dirtiness before listing it as removable
 git -C "<worktree-path>" status --porcelain   # non-empty → DIRTY, exclude + warn
 ```
 
+**Untracked symlinks are not dirt.** A worktree hook that symlinks gitignored artifact dirs back to the main checkout, under a `.gitignore` pattern with a trailing slash (`dir/` matches directories, never a symlink), makes every worktree read DIRTY. Measured 2026-10-06: 10 of 10 merged worktrees "dirty", all of it symlinks. Classify before excluding: an untracked entry that is a symlink (`[ -L ]`), or a directory holding only symlinks and files byte-identical to the trunk's tracked copy, is not work. Clear it with `find <path> -type l -delete` (unlinks, never follows) and remove the worktree without `--force`. Only ever clear paths listed by `git -C <wt> ls-files -o --exclude-standard`: a file untracked on the trunk can be tracked on an older branch, and deleting it by hand puts a tracked deletion in the tree.
+
 **PR lookup, once (if a host CLI is available).** Both gates below need to know, per branch, whether it has a merged PR and — critically — what commit that PR actually merged, which can differ from the branch's current tip (see the tip check at the end of this step). Ask the host once for the whole repo rather than per branch:
 
 ```bash
