@@ -44,6 +44,15 @@ empty, say so and stop — do not go looking for adjacent work.
 For an epic, also report the children already Done or Canceled (count and keys) and skip
 them: they are neither work nor a blocker.
 
+**Merged is not deployed.** For each issue whose linked PR is already merged, read the PR
+body for a manual deploy section (or the repo's equivalent convention). If there is one,
+probe the artifact it names on its target (unit installed, package present, file in place)
+before classifying the issue. Merged but not deployed lists apart, as **needs deploy**, with
+the deploy block handed to the user up front: it is usually the cheapest work in the batch
+and the precondition for its proof. Observed 2026-10-02: three issues sat In Review two days
+after their `ops` PRs merged, while no timer was installed on apollon and
+`unattended-upgrades` was missing on hades. Each PR's sudo deploy section had never been run.
+
 ## Step 1 — Order them, on stated criteria
 
 Never "I'll start with the easy one". Score each issue on three axes the user can check:
@@ -63,7 +72,7 @@ Two rules fall out, and they pull in opposite directions on purpose:
 
 So the shape of a good batch is: *start the long paid run in the background, then build the
 cheap issues while it burns.* Say the order and the criterion that produced it, in a table,
-before starting.
+before starting. Step 0's **needs deploy** issues head that table.
 
 **Dependencies outrank cost.** If one issue's answer changes another's scope, the answer
 comes first even if it is the expensive one — and say so, because it means the cheap work
