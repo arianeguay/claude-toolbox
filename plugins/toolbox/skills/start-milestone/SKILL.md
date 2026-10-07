@@ -53,6 +53,15 @@ and the precondition for its proof. Observed 2026-10-02: three issues sat In Rev
 after their `ops` PRs merged, while no timer was installed on apollon and
 `unattended-upgrades` was missing on hades. Each PR's sudo deploy section had never been run.
 
+**Check that no other live session holds a key.** Before claiming any issue, look for a
+worktree or branch already carrying its key (`git worktree list`, `git branch -r`), then call
+`ListAgents` and, for each peer session that is busy or waiting on the same repo, ask through
+`toolbox:message-other-session` whether it holds any of the enumerated keys. Skip every key a
+peer claims and mark it *held by <session>* in the Step 1 table. Observed 2026-09-29: two
+sessions ran this skill on overlapping sets twelve minutes apart; the second one's subagents
+wrote into the first one's worktree and opened PRs on its unpushed commits. It surfaced only
+because a file about to be edited had an mtime 14 seconds old.
+
 ## Step 1 — Order them, on stated criteria
 
 Never "I'll start with the easy one". Score each issue on three axes the user can check:
