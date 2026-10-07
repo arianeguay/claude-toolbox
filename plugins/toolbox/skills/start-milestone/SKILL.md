@@ -67,7 +67,8 @@ before starting.
 
 **Dependencies outrank cost.** If one issue's answer changes another's scope, the answer
 comes first even if it is the expensive one — and say so, because it means the cheap work
-waits.
+waits. A `blockedBy` link orders the whole batch, so test its stated reason before ordering on
+it (start-issue Step 1): one false relation freezes every issue downstream of it.
 
 ## Step 2 — Should any of these be one PR?
 

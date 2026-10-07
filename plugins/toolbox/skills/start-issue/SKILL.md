@@ -34,6 +34,13 @@ Read the full issue: title, description, labels, state, estimate, priority, rela
 
 **A blocked issue does not start.** If an open blocker exists, say which one and stop. That is the only step that aborts the flow silently-free.
 
+**Test the blocker's reason before obeying it.** A `blockedBy` link records a causal claim made when the issue was filed, and it outlives the reasoning behind it. Find the sentence (in either issue, or its comments) that says why it blocks. If that reason is a fact a cheap read-only check can test (a config value, free space, a file's presence), run the check first:
+
+- Claim holds, or it is not cheaply testable (a pending decision, another PR's code) → stop, as above.
+- Claim is disproved → do not stop silently and do not start silently. Report the evidence, propose removing the relation with a comment on the issue carrying it, and continue only once that is done.
+
+Observed 2026-09-30 on STU-1875: blocked by a full-disk fix on the premise that the disk made journald drop history. Two read-only commands showed 2.3G free and the journal kept in RAM. Obeying the link would have parked STU-1875 and the two issues chained behind it, on a milestone whose critical path was a 7-day measurement.
+
 **An issue that already carries an MR/PR does not start from scratch.** Read the issue's attachments before Step 2: a PR/MR link there means work exists, and the tracker's own state may be lying about it. Check that PR's state with the host CLI:
 
 - **Merged** → run the check in `trunk.md`. Work on the trunk → set the tracker's done state (Step 3's adapter, matched by the `completed` type), report with `verdict already shipped — <PR>, merged <date>`, and skip Steps 2-7. Work NOT on the trunk → the recovery in `trunk.md`, never a fresh build of the same spec.
