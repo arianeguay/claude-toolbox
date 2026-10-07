@@ -68,6 +68,7 @@ A candidate must come from one of these. If it doesn't, it's not a candidate.
 Drop a candidate if any holds:
 
 - **Already filed** — search the tracker before proposing *(see tracker file)*. Cite the existing key instead.
+- **Premise contradicted** — a title search catches a duplicate, not an older open issue that already records a fact the candidate gets wrong. Before a candidate's body says where something is, why it is that way or what should be done, run the same search again on the *entities* it is about: each machine or service name, its other names (old hostnames, nicknames) and its address. Read every open hit, then cite the fact it records and fix the candidate's premises, or drop the candidate if that issue already covers it. Measured 2026-09-28: STU-1777 proposed moving hades "back to Lau's place", while STU-788, open for six weeks, said it was going to Ariane's parents. "offsite backup hades LAN" could not reach "Déploiement physique Pi3 — chez les parents": other language, the machine's old name, no shared noun. A search on `Pi3` returns it first.
 - **Done in this task** — the diff already handles it.
 - **No trigger** — "improve X", "consider Y", "maybe refactor Z" with no concrete symptom or reader/user impact. A wish is not an issue.
 - **Speculative** — depends on a future that isn't scheduled.
