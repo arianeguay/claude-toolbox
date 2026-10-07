@@ -144,6 +144,20 @@ not work — each merge moves the base again.
 **Prove the rebase, do not assume it.** Two changes that both apply cleanly can still
 disagree; the test run after the rebase is the only thing that says otherwise.
 
+**A merge queue does the rebase and the test for you.** When the trunk has one, `gh pr merge
+--squash` is refused (`The merge strategy for main is set by the merge queue`), and a bare
+`gh pr merge` on a PR whose checks are still running does nothing and prints nothing. Use
+`gh pr merge <n> --auto`: the PR enters the queue once its checks pass, and the queue tests it
+on top of every entry ahead of it. Rebase by hand only on a textual conflict, which you can
+see before enqueueing without touching a worktree:
+
+```bash
+git merge-tree --write-tree --name-only origin/<default> origin/<branch>   # exit 1 = conflict
+```
+
+Observed 2026-10-07 on wiki-creator: four sibling PRs went through the queue with no manual
+rebase; the two that shared a file conflicted and needed one rebase each.
+
 **A rebase that empties the branch reports success twice.** If the PR was already merged —
 by the user, or by a squash you did not perform — the rebase finds its commit already
 upstream, drops it, and leaves the branch pointing at the trunk. The push that follows then
@@ -269,6 +283,11 @@ all of them learned the hard way:
   string does not match, and silently when it does. Use absolute paths.
 - **The main checkout is usually behind.** Branch worktrees off `origin/<default>` after a
   fetch, never off the local branch.
+- **Parallel subagents must never `git stash`.** The stash list belongs to the repository,
+  not the worktree, so one agent's `stash pop` applies another agent's changes. Tell every
+  subagent to take a baseline with `git diff > file` and `git apply`, or a throwaway
+  worktree. Observed 2026-10-07: two agents stashed at the same moment, each popped the
+  other's work into its own worktree, and one had to rebuild both from saved diffs.
 - **An issue's own label can be wrong, and measuring it is part of the work.** One issue in
   the source session was filed `local` pending a question its own description posed; the
   answer was in the code, and it shipped as `web`. Backfill the label when the answer lands.
