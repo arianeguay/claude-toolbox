@@ -275,6 +275,11 @@ all of them learned the hard way:
   line contains `foo.py` matches that shell, so the loop waits forever and the chained work
   never starts. Match on a marker file the job writes, or on a pattern that cannot appear in
   the waiter. `pkill -f` has the same trap and kills the caller.
+- **Never wait on a remote job through the ssh that started it.** The job can finish on the
+  host while that ssh never returns, and a hung call reads exactly like a slow job. Start it
+  with `ssh -n host 'setsid nohup <cmd> > <log> 2>&1 < /dev/null; touch <dir>/DONE'` and
+  poll for the marker with short, separate ssh calls. Measured 2026-10-12: a 10-minute
+  baseline finished at 11:10 and was only noticed at 12:22, because the waiting ssh hung.
 
 ## Traps
 
