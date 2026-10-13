@@ -37,6 +37,7 @@ plugins/toolbox/       # the plugin itself — what `source: "./plugins/toolbox"
     adhd-summary/        # compress any conversation into keep/decided/open/do (+ merge verdict when a PR exists)
     can-i-close/         # can this session be closed? checks what closing would lose or leave broken, yes/no + one action per blocker
     issues-candidate/    # end-of-task sweep for follow-up work worth filing (trackers/ per host)
+    triage/              # work through the triage queue: one-minute check per issue, keep/fix/drop table, act on go
     is-it-down/          # check live status of gitlab/github/anthropic/etc via their status-page APIs
     message-other-session/ # hand off a settled decision to a concurrent session before it redoes the work
     shape/               # Shape Up entry point — triages a ticket trivial/medium/large, routes onward, persists the shaping bundle
