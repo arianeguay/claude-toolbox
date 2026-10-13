@@ -35,6 +35,7 @@ plugins/toolbox/       # the plugin itself — what `source: "./plugins/toolbox"
     am-i-stuck/          # Shape Up hill-chart / "am I in the tunnel?" self-diagnostic
     what-did-we-learn/   # end-of-session capture of generalizable learnings into memory
     adhd-summary/        # compress any conversation into keep/decided/open/do (+ merge verdict when a PR exists)
+    can-i-close/         # can this session be closed? checks what closing would lose or leave broken, yes/no + one action per blocker
     issues-candidate/    # end-of-task sweep for follow-up work worth filing (trackers/ per host)
     is-it-down/          # check live status of gitlab/github/anthropic/etc via their status-page APIs
     message-other-session/ # hand off a settled decision to a concurrent session before it redoes the work
