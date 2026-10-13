@@ -1,6 +1,6 @@
 ---
 name: triage
-description: Use to work through a tracker's triage queue — reads every issue waiting in triage, runs a one-minute check on each, backfills missing metadata, and gives a keep / fix now / drop verdict per issue in one table; on approval it moves kept issues out of triage, fixes the small ones, and cancels the rest with a signed reason. Triggers - /triage, "on passe à travers le triage", "go through triage", "clear the triage queue", "trie le triage", a screenshot of the Linear Triage view.
+description: Use to work through a tracker's triage queue: reads every issue waiting in triage, runs a one-minute check on each, backfills missing metadata, and gives a keep / fix now / drop verdict per issue in one table; on approval it moves kept issues out of triage, fixes the small ones, and cancels the rest with a signed reason. Triggers - /triage, "on passe à travers le triage", "go through triage", "clear the triage queue", "trie le triage", a screenshot of the Linear Triage view.
 user-invocable: true
 ---
 
@@ -10,7 +10,7 @@ Empty the triage queue in one pass: **read → check → verdict table → wait 
 
 An issue in triage was filed by someone (often a past session) who has not yet decided it deserves a row in the backlog. This skill makes that decision with evidence, not on the title.
 
-## Step 1 — List the queue
+## Step 1: List the queue
 
 Linear: `list_issues state: "triage"` (all teams unless the user names one), then `get_issue includeRelations: true` on each. Read the full description; the title alone decides nothing.
 
@@ -18,7 +18,7 @@ GitHub/GitLab have no triage state: use open issues carrying a `triage`/`needs-t
 
 A screenshot of the queue gives the keys; still fetch each issue, since the screenshot shows titles only.
 
-## Step 2 — Check each issue (one minute each)
+## Step 2: Check each issue (one minute each)
 
 Every verdict cites a check that ran in this step. Run them in parallel.
 
@@ -29,7 +29,7 @@ Every verdict cites a check that ran in this step. Run them in parallel.
 5. **Metadata gaps.** Compare against the user's issue conventions (`CLAUDE.md`, global rules): estimate, priority, project, required label groups, `blockedBy` ordering, due date for a calendar gate. Note each gap; it gets filled in Step 5, not reported as a problem.
 6. **Automation hazards.** If the issue carries a label that hands it to an unattended runner, check the runner can actually finish it: the repo is on the runner's allowlist, its proof can run where the runner runs, and it is not waiting on an undated event (the runner would pick it every night and find nothing to do). Fails → remove the label or add the blocker that makes it wait.
 
-## Step 3 — Verdict per issue
+## Step 3: Verdict per issue
 
 | Verdict | When | Action on go |
 |---|---|---|
@@ -40,7 +40,7 @@ Every verdict cites a check that ran in this step. Run them in parallel.
 | `🗑️ Drop` | Refuted, speculative, no trigger, or covered elsewhere | Cancel with a signed comment naming the filter |
 | `❓ Ask` | The verdict depends on intent only the user has | Ask the one question, then re-verdict |
 
-## Step 4 — Table, then stop
+## Step 4: Table, then stop
 
 ```
 Triage: <n> issues. Checked: <one line of what ran, e.g. "versions on apollon, allowlist on origin/main, blocker states">
@@ -62,7 +62,7 @@ Default on "go": the action column of each verdict above.
 
 Rules: one line of reason per issue, the ticket key always beside words that say what it is, backfills named inline, the `Not kept` section always printed (say `none` when empty). Then **STOP** and wait: `go`, `go sauf <key>`, or a pick.
 
-## Step 5 — Act on go
+## Step 5: Act on go
 
 1. **Tracker moves first**, in parallel: state, backfilled metadata, relations. Linear `labels` replaces the whole set, so use `addLabels`. A label group allows one label (`claude:local` vs `claude:ariane`): swapping means removing the other in the same save.
 2. **Drops:** post the comment first, then cancel. The comment names the filter and what would bring the issue back, and ends with:
@@ -76,7 +76,7 @@ Rules: one line of reason per issue, the ticket key always beside words that say
 3. **Fix now**, one at a time, through `start-issue`. Check the PR's live state before reporting it.
 4. **A fix now that gets refused** (a permission prompt denied, a host the session may not write to): do not route around it. Leave the issue in Todo with its labels intact and hand the user the exact command in its own code block.
 
-## Step 6 — Report
+## Step 6: Report
 
 Close with `adhd-summary`: task mode if a fix-now opened a PR, generic mode otherwise.
 
