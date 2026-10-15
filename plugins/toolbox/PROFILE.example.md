@@ -76,6 +76,20 @@ PROJECT_DOCS=              # space-separated paths to convention/edge-case docs,
 Read by: `context-validator` — scans the diff against each listed doc that exists; skips
 any path that doesn't, and skips the whole step if left empty.
 
+## QA flows
+
+```
+### MO Add cycles
+Paths: src/components/AddCycles/** src/components/Scheduling/OptimizationTabs.tsx
+1. OPEN a patient plan with several cycles left, CLICK "Book cycles"
+2. VERIFY the submit button stays visible with 6+ cycles listed
+```
+
+One `### <flow>` per flow: a `Paths:` line of space-separated globs, then numbered steps
+starting with a verb. Read by: `context-validator` step 6. When the diff touches a flow's
+paths, that flow becomes one item of the human action list, steps verbatim. This is where a
+team's "always re-test this by hand" list lives when it has no other home.
+
 ## App under test
 
 ```
