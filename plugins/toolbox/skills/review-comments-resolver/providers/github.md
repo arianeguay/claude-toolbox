@@ -5,12 +5,12 @@ On GitHub, **resolution state lives only in GraphQL review threads** — the RES
 ```bash
 OWNER_REPO=$(gh repo view --json owner,name -q '.owner.login + "/" + .name')
 OWNER=${OWNER_REPO%/*}; REPO=${OWNER_REPO#*/}
-PR=$(gh pr view "$(git branch --show-current)" --json number -q .number)
+PR=$(gh pr view "${PR_NUMBER:-$(git branch --show-current)}" --json number -q .number)   # PR_NUMBER = the skill argument, if given
 ```
 
 ## Detect the PR
 ```bash
-gh pr view "$(git branch --show-current)" --json number,title,url,isDraft
+gh pr view "$PR" --json number,title,url,isDraft
 ```
 
 ## List comments

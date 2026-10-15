@@ -3,13 +3,14 @@
 GitLab keeps comments as **notes** grouped into **discussions**; resolution is a field on the discussion.
 
 ```bash
-IID=$(glab mr view "$(git branch --show-current)" -F json | jq -r .iid)
+MR="${MR_NUMBER:-$(git branch --show-current)}"   # MR_NUMBER = the skill argument, if given
+IID=$(glab mr view "$MR" -F json | jq -r .iid)
 # `:id` in the paths below is glab's placeholder for the current project — leave it literal.
 ```
 
 ## Detect the MR
 ```bash
-glab mr view "$(git branch --show-current)" -F json   # iid, title, web_url
+glab mr view "$MR" -F json   # iid, title, web_url
 ```
 
 ## List comments
@@ -17,7 +18,7 @@ glab mr view "$(git branch --show-current)" -F json   # iid, title, web_url
 # Use /notes (NOT /discussions) — /discussions --paginate silently drops items on large MRs.
 glab api "projects/:id/merge_requests/$IID/notes" --paginate
 ```
-Notes are flat; group by `discussion_id` to reconstruct threads. Unresolved = note with `resolvable: true` and `resolved: false`. Inline = `position != null`; general = `position == null`. The `discussion_id` (hex) is what you reply to and resolve.
+Notes are flat; group by `discussion_id` to reconstruct threads. Unresolved = note with `resolvable: true` and `resolved: false`. Also collect `resolvable: false` notes with no `position`: GitLab never makes a plain overview comment resolvable, so the filter alone drops human general feedback. Inline = `position != null`; general = `position == null`. The `discussion_id` (hex) is what you reply to and resolve.
 
 ## Identify bots (by `author.username`)
 - **Cursor Bugbot** — `^project_\d+_bot_`.

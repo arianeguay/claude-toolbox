@@ -41,7 +41,7 @@ The author patterns and the await signals differ per host *(see provider file)*.
 
 Collect three categories, **including both inline (has a file/line) and general (no position) comments** — humans often leave feedback as general comments; missing those is a critical gap.
 
-- **A. Human** — author is not a bot; resolvable & unresolved.
+- **A. Human** — author is not a bot; unresolved threads, plus standalone general comments (no thread to resolve, so reply but never resolve).
 - **B. Bugbot** — Cursor bot author; inline; unresolved.
 - **C. CodeRabbit** — CodeRabbit author; inline; unresolved. Also read its **summary comment** (don't treat as a finding) to pull nitpicks lacking an inline note (mark `[nitpick]`).
 
