@@ -92,6 +92,8 @@ Run the automated analyses first and report findings inline — they *replace* q
 
 ## Step 6 — Human action list (only what truly can't be automated)
 
+**QA flows first.** If `PROFILE.md` has a `## QA flows` section, match each flow's `Paths:` globs against the files in the diff. Every matched flow is one item on the list, its steps copied verbatim under its name: these are flows the team already decided must be re-checked by hand, so they are never dropped for an item you derived yourself. Fill the remaining slots from the diff as below.
+
 ```
 ── Things you need to do (I can't check these) ──────────
 1. OPEN localhost:3000/orders/<an order with line items>
