@@ -27,8 +27,7 @@ does not change what they do next or what they will need tomorrow, it does not g
   decision, brainstorming, planning
 - The user comes back to a session that ran while they were elsewhere
 
-Mid-conversation is fine: the generic block needs no finished work. If the question is
-"am I going in circles", use `toolbox:am-i-stuck` instead.
+Mid-conversation is fine: the generic block needs no finished work.
 
 ## Step 0 — Pick the mode
 

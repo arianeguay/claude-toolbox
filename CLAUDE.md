@@ -15,7 +15,6 @@ real browser.
 - `start-issue`, `start-milestone` — verification means actually driving a live
   Linear/GitHub/GitLab workspace end to end, not just reading the adapter markdown.
 - `browser-test` — verification means driving a real browser.
-- `is-it-down` — verification means hitting real external status-page APIs.
 
 Editing any of these skills' own markdown is `claude:web`; proving the skill actually
 drives the live system it targets is `claude:local`. Everything else in this repo defaults

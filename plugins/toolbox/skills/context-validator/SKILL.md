@@ -34,9 +34,8 @@ If empty → `✅ No changes` and exit.
 
 Compare what the diff *touches* against what the change was *supposed* to do. Find the intended scope in this priority order:
 
-1. **A shaping bundle**, if you use one — a local file keyed by the ticket id (`${SHAPING_DIR}/<TICKET>.md`, see `PROFILE.md`). Use its "ship / don't-ship" scope sections; honour a `Reshape` section as the newer source of truth.
-2. **The linked issue / PR / MR description** — `gh pr view --json body` or `glab mr view`, or the tracker issue if the branch encodes one (`[A-Z]+-[0-9]+`).
-3. **The branch name + commit messages**, as a last resort.
+1. **The linked issue / PR / MR description** — `gh pr view --json body` or `glab mr view`, or the tracker issue if the branch encodes one (`[A-Z]+-[0-9]+`).
+2. **The branch name + commit messages**, as a last resort.
 
 **Flag as scope creep:** files in a different feature domain than the task; new components/utils the task doesn't require; "happened to be nearby" refactors; anything explicitly listed as out-of-scope.
 **Not scope creep:** a bug fix in a file you're already editing; a type fix needed to make the feature compile; import cleanup in touched files.

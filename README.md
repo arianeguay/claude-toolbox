@@ -21,7 +21,6 @@ plugins/toolbox/       # the plugin itself — what `source: "./plugins/toolbox"
   skills/
     git-clean-history/   # rewrite messy git history into a clean, senior-level log (git-only)
     clean-worktree/      # remove stale worktrees/branches after squash-merge (via [gone] upstream)
-    fix-ci/              # diagnose + fix CI failures (GitLab/GitHub, multi-toolchain)
     smallest-footprint/  # audit a PR/MR diff and reduce its surface area
     mechanical-checks/   # pre-review scan for mechanical violations (per-stack checks in stacks/)
     context-validator/   # judgment-level pre-review: scope + code-path analysis, then a precise human action list
@@ -32,18 +31,12 @@ plugins/toolbox/       # the plugin itself — what `source: "./plugins/toolbox"
     mr-ship/             # orchestrator: the pre-review pipeline at three depths (full/medium/short)
     uniformity-check/    # check a diff for drift vs the codebase (per-stack baselines in stacks/)
     browser-test/        # drive a browser for UI validation (DevTools MCP / Playwright MCP / playwright-cli)
-    am-i-stuck/          # Shape Up hill-chart / "am I in the tunnel?" self-diagnostic
     what-did-we-learn/   # end-of-session capture of generalizable learnings into memory
     adhd-summary/        # compress any conversation into keep/decided/open/do (+ merge verdict when a PR exists)
     can-i-close/         # can this session be closed? checks what closing would lose or leave broken, yes/no + one action per blocker
     issues-candidate/    # end-of-task sweep for follow-up work worth filing (trackers/ per host)
     triage/              # work through the triage queue: one-minute check per issue, keep/fix/drop table, act on go
-    is-it-down/          # check live status of gitlab/github/anthropic/etc via their status-page APIs
     message-other-session/ # hand off a settled decision to a concurrent session before it redoes the work
-    shape/               # Shape Up entry point — triages a ticket trivial/medium/large, routes onward, persists the shaping bundle
-    decompose/           # split a large ticket into independently shippable sub-tickets against a checkable quality bar
-    rabbit-holes/        # scan a ticket's technical/data/user-flow/coordination risks against a fixed 4-dimension grid
-    retrospect/          # post-ship review (5-10 min) comparing shaped vs. actual, logs a calibration data point
     plan/                # code-anchored implementation plan, bridging shaping decisions to build
     start-issue/         # bare issue link → branch/worktree, In Progress, build, PR, In Review (trackers/ per host, trunk.md)
     start-milestone/     # whole milestone → order by verification cost, run start-issue per issue, sequence the merges (trunk-checked)
@@ -69,7 +62,7 @@ Add the marketplace once, then install the plugin:
 /plugin install toolbox@arianeguay
 ```
 
-Skills are namespaced under the plugin: `/toolbox:mr-ship`, `/toolbox:fix-ci`, etc.
+Skills are namespaced under the plugin: `/toolbox:mr-ship`, `/toolbox:start-issue`, etc.
 The hooks activate automatically when the plugin is enabled — no manual copy step.
 
 ## Configure
