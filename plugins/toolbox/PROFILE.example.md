@@ -45,16 +45,6 @@ Read by: `create-or-update-mr`. The *default* target needs no key: it comes from
 without configuration. Set this only when `hotfix/*` should target something other than
 `master`, or `master` doesn't exist on the remote.
 
-## Shaping
-
-```
-SHAPING_DIR=               # absolute path to persisted shaping bundles, e.g. ~/notes/shaping
-```
-
-Read by: `plan` and `context-validator`, to find `${SHAPING_DIR}/<TICKET>.md` and use its
-scope sections as the intent source. Leave empty if you don't use shaping bundles — both
-skills fall back to the PR/MR description, then the branch name.
-
 ## Checks
 
 ```
@@ -101,11 +91,3 @@ Read by: `browser-test`.
 **Credentials do not go in this file.** If the dev server needs a login, put it in your
 password manager or a gitignored `.env` and let the skill ask — never commit credentials
 to a repo, including a private one.
-
-## Status checks
-
-```
-STATUS_SERVICES=gitlab github anthropic    # default set for /is-it-down with no argument
-```
-
-Read by: `is-it-down`.
