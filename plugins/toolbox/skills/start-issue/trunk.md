@@ -1,6 +1,6 @@
 # Did the work reach the trunk?
 
-Shared by `start-issue` (Steps 2 and 8), `start-milestone` (Step 4) and `mr-ship`
+Shared by `start-issue` (Steps 2 and 8), `start-batch` (Step 4) and `mr-ship`
 (Step 11). One definition, because a check restated in three files drifts in three
 directions.
 

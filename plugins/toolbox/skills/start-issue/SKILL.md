@@ -225,7 +225,7 @@ gh pr view <n> --json baseRefName -q .baseRefName    # glab mr view <n> -F json 
 
 Base is not the trunk → say that merging this PR will not put the work on the trunk, and name the retarget. Do not report `state In Review` as if the flow were clean; the stack is the finding.
 
-**If a merge happened while this flow was running** — the user merged the PR mid-session, or the flow ran under `start-milestone` — run the check in `trunk.md` before reporting anything as shipped, and report its verdict. A PR URL is evidence that a PR exists; it is not evidence that the trunk has the work.
+**If a merge happened while this flow was running** — the user merged the PR mid-session, or the flow ran under `start-batch` — run the check in `trunk.md` before reporting anything as shipped, and report its verdict. A PR URL is evidence that a PR exists; it is not evidence that the trunk has the work.
 
 Then run `toolbox:issues-candidate` if the build surfaced anything worth filing.
 
