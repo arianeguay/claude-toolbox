@@ -1,32 +1,38 @@
 ---
-name: start-milestone
-description: Take a whole tracker milestone from "link pasted" to "every open issue shipped" — enumerates the open issues, orders them by what their verification costs, runs each through start-issue, sequences the merges, and closes with one adhd-summary for the set. Use when the user drops a milestone/project link or says "do every open task in this milestone", "clear this milestone", "fais tout le milestone". Do NOT use for a single issue (that's `start-issue`) or to plan a milestone without building it.
+name: start-batch
+description: Take several tracker issues from "link pasted" to "shipped" — a list of keys, a project, a milestone or an epic — capped per run; enumerates the open issues, orders them by what their verification costs, runs each through start-issue, sequences the merges, and closes with one adhd-summary for the set. Use when the user passes more than one issue key, drops a milestone/project/epic link, or says "do every open task in this milestone", "clear this milestone", "fais tout le milestone", "fais ces issues". Do NOT use for a single issue (that's `start-issue`) or to plan a batch without building it.
 user-invocable: true
 ---
 
-# Start milestone
+# Start batch
 
 `start-issue` for one ticket, N times, plus the four things that only exist when the
 tickets are a *set*: what order they run in, what starts in the background first, what
 order they merge in, and one summary at the end instead of N.
 
-**Principle:** the milestone is a batch, not a queue. The cheap issues are the deliverable
+**Principle:** a batch, not a queue. The cheap issues are the deliverable
 you can hand back today; the expensive one decides when the batch is done. Those are
 different jobs, and running them in list order does neither well.
 
 ---
 
-## Step 0 — Resolve the milestone and enumerate its open issues
+## Step 0 — Resolve the batch and enumerate its open issues
 
-Accept a milestone URL, a project URL plus a milestone name, a bare name, or an epic
-(parent issue) link, whose open children are the batch.
+Accept any of:
+
+- **a list of issue keys or links** (`STU-1 STU-2 HOM-3`): read each one, skip none
+  silently, and skip the enumeration below;
+- **a project**: every open issue in it, all milestones;
+- **a milestone**: URL, project URL plus milestone name, or a bare name;
+- **an epic** (parent issue) link, whose open children are the batch.
 
 Pick the adapter from `../start-issue/trackers/<TRACKER>.md` — everything about reading an
 issue, naming a branch and moving state lives there and is not repeated here. The one
 query this skill adds is enumeration:
 
-| Tracker | Enumerate the milestone's open issues |
+| Tracker | Enumerate the open issues |
 | -- | -- |
+| Project, Linear | `list_issues` with `project:` + `state:` per open type, no milestone filter |
 | Linear | `list_issues` with `project:` + `state:` per open type, then filter on `projectMilestone.name` client-side. **There is no milestone filter and results paginate** — a single unfiltered call silently returns the first page and looks complete. |
 | Epic, Linear | `list_issues` with `parentId: <epic key>` once per open state (`backlog`, `unstarted`, `started`), concatenated. Children in `completed`/`canceled` are not open. |
 | Epic, GitHub | the issue's sub-issues, else the issues in its tasklist: `gh issue view <n> --json body`, then read each linked issue's state |
@@ -40,6 +46,13 @@ mixed list is how an issue gets left behind, and nothing later notices.
 
 Print the list before touching anything: key, title, estimate, labels, priority. If it is
 empty, say so and stop — do not go looking for adjacent work.
+
+**Cap the run: at most 15 estimate points and at most 10 issues.** Points bound the real
+cost (session context, wall clock, PRs to merge); the count bounds the PRs the user merges
+by hand and the summary they read, even when every issue is a 1. An issue with no estimate
+counts as 3. Over either cap, do not refuse: take the head of the Step 1 order up to the
+cap, and print the rest as **next batch**, with the exact invocation to run it
+(`/toolbox:start-batch <keys>`). Nothing outside the cap is claimed, moved or branched.
 
 For an epic, also report the children already Done or Canceled (count and keys) and skip
 them: they are neither work nor a blocker.
@@ -107,7 +120,7 @@ State the decision once, per pair, with the criterion. Do not re-litigate it lat
 ## Step 3 — Run each issue through `start-issue`
 
 Invoke `toolbox:start-issue` per issue, in the Step 1 order. It owns the worktree, the
-state transitions, the build and the PR. Two milestone-level additions:
+state transitions, the build and the PR. Two batch-level additions:
 
 - **The worktrees are siblings and the session is not in any of them.** Address every one
   explicitly (`git -C <wt>`, `make -C <wt>`, absolute paths). With several open at once,
@@ -232,10 +245,10 @@ Progress with its proof still pending.
 An epic link adds one rule: move the epic itself to Done only after every child is Done
 (the ones skipped in Step 0 included). While one child is still In Review, the epic stays open.
 
-Then run `toolbox:adhd-summary` **once for the milestone**, not once per issue. The verdict the user needs is about the batch: what
+Then run `toolbox:adhd-summary` **once for the batch**, not once per issue. The verdict the user needs is about the batch: what
 merged, what still needs them, what got filed.
 
-If anything was left undone, say which and why, in the summary — a milestone reported as
+If anything was left undone, say which and why, in the summary — a batch reported as
 finished with one issue quietly still open is the failure this skill exists to prevent.
 
 ---
