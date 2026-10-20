@@ -12,7 +12,7 @@ Generate or update a professional PR/MR title + description from the branch diff
 1. Gather context (branch, base, ticket, diff)
 2. **Check for an existing PR/MR** — fetch its current title + description
 3. Analyze the diff (intent, decisions, risks, UI?)
-3.5. **If UI changed:** capture real screenshots via Chrome DevTools MCP, upload, embed
+3.5. **If UI changed:** capture real screenshots via Chrome DevTools MCP (clips via `playwright-cli` for interactions), upload, embed
 4. Generate or update title + description, **preserving existing content**
 5. Present to the user for approval
 6. Push (create or update)
@@ -129,14 +129,30 @@ A reachable `localhost:3000` proves nothing: it's often another worktree's serve
 
 **If any precondition fails** (dev server couldn't be started, tool unavailable, no known login, diff is a pure refactor/backend/no visual surface): use the existing `📸 TODO: add before merging` or `N/A — no UI change` fallback — don't block the rest of the pipeline on this. **State which precondition failed and why in the final report** (e.g. "no screenshots: `mcp__chrome-devtools__*` unavailable"), so a silent `📸 TODO` is never mistaken for "the diff has no UI".
 
-**Multi-step flow → prefer video over a screenshot stack.** A static image can't show a before/after transition, an animation, or a multi-click sequence. If `playwright-cli` is installed (see `toolbox:browser-test` for the tool-selection table — it's the only one of the three that records) and the diff is that kind of flow, record instead:
+### Step 3.5.1: Record interaction clips (when a screenshot can't show it)
+
+Record a clip when the change is an interaction a still image can't carry: focus moving, typing, a popover or menu opening, navigation between views, a keyboard path, an animation. Single-state UI changes still get a plain screenshot; video is the upgrade for interactions, not the new default. Only `playwright-cli` records (see `toolbox:browser-test` for the tool table); if it isn't installed, screenshot instead and say so in the report.
+
+**Rules:** one interaction per clip, under ~15s, a `video-chapter` per step. When the behaviour should be unchanged (a refactor of an interactive component), record the same interaction **before** (on the base branch's server) and **after**, with the same steps.
+
 ```bash
-playwright-cli -s=<repo> video-start .mr-screenshots/demo.webm
-# drive the flow: goto / click / fill / etc.
-playwright-cli -s=<repo> video-chapter "Step label"   # optional markers per step
-playwright-cli -s=<repo> video-stop
+S="-s=$(basename "$ROOT")"                       # named session, isolated from other repos
+playwright-cli $S open "http://localhost:<port>/login"   # a session must be open before video-start
+# log in here (fill/click): this browser shares nothing with the Chrome DevTools MCP one
+playwright-cli $S goto "http://localhost:<port>/<route>"
+playwright-cli $S video-start "$ROOT/.mr-screenshots/<name>.webm"  # WebM (VP8), frame fits 800x800 unless --size
+playwright-cli $S video-show-actions             # callout naming each action, target highlighted
+playwright-cli $S video-chapter "Open the menu"
+playwright-cli $S snapshot                       # get element refs (e12, ...) for click/fill
+playwright-cli $S click <ref>
+playwright-cli $S press Tab
+playwright-cli $S video-stop                     # prints the saved path
+playwright-cli $S close
 ```
-Upload the same way as a screenshot (Step 3.5.5 above) — the GitLab uploads endpoint and the `curl --form` requirement are identical for any file type, not just PNG. Delete the local file after upload, same cleanup rule as screenshots. Single-state UI changes still get a plain screenshot — video is the upgrade for flows, not the new default.
+
+Without a filename, `video-start` writes `.playwright-cli/video-<timestamp>.webm` under the cwd, and every action also drops a snapshot `.yml` there: delete what the run created there along with `.mr-screenshots/`. A clip of this size is a few hundred KB.
+
+**Attach:** GitLab takes `.webm`/`.mp4` through the same uploads endpoint and `curl --form` call as the PNGs (step 5 above). Embed the returned `markdown` field as is: `![name](/uploads/<hash>/name.webm)` renders as an inline player. GitHub: `gh` can't upload attachments, so either link a clip already hosted somewhere or skip it and note in the report that it needs dragging into the PR by hand. Same cleanup rule as screenshots.
 
 ---
 
@@ -166,7 +182,7 @@ Upload the same way as a screenshot (Step 3.5.5 above) — the GitLab uploads en
 
 **Include:** the change↔problem link, real architecture decisions, risk flags, out-of-scope notes. **Skip:** per-file lists, obvious patterns, restating the ticket, boilerplate that doesn't apply.
 
-**Screenshots:** prefer real images captured per Step 3.5; fall back to `📸 TODO: add before merging` only if a precondition there fails; for a pure refactor write `N/A — no UI change`. **When ≥3 screenshots, write a narrative walkthrough** grouped by scenario (a short paragraph explaining *why each scenario is shown* before each image), not an alt-text gallery.
+**Screenshots:** prefer real images captured per Step 3.5, plus any clips from Step 3.5.1 next to the scenario they show; fall back to `📸 TODO: add before merging` only if a precondition there fails; for a pure refactor write `N/A — no UI change`. **When ≥3 screenshots, write a narrative walkthrough** grouped by scenario (a short paragraph explaining *why each scenario is shown* before each image), not an alt-text gallery.
 
 ---
 
