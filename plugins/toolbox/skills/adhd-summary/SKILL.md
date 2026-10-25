@@ -215,7 +215,10 @@ old "offer issues-candidate" step, and `FILE THESE` stays the list of the issues
 One line, after the capture line. Generic mode: the first `DO` item, or nothing when `DO`
 is empty. Task mode: the one the verdict implies:
 
-- `MERGE IT` → "Merge: `gh pr merge <n> --squash`"
+- `MERGE IT` → "Merge: `gh pr merge <n> --<method>`", with the first method the repo allows
+  among squash, merge and rebase, read from `gh repo view --json
+  squashMergeAllowed,mergeCommitAllowed,rebaseMergeAllowed`. A hardcoded `--squash` fails
+  on a repo that allows merge commits only (family-timeline, 2026-10-25).
 - `DON'T MERGE YET` → the single command that closes the gap ("Run `make test` — 30s")
 - `YOUR CALL` → the one question, asked once, answerable in a word
 
