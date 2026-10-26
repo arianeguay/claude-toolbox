@@ -92,7 +92,7 @@ git rebase "origin/$BASE"   # replays commits, surfaces conflicts/drops — unli
 ```
 Then re-run mr-ship from Step 0. Do **not** proceed while behind — and do **not** use `git reset --soft origin/$BASE` to squash a behind branch. As a final belt-and-suspenders before any push, confirm the **two-dot** diff has no files you didn't touch (two-dot shows base-advance deletions that three-dot hides): `git diff "origin/$BASE" HEAD --stat`.
 
-Prevention upstream of this skill: cut worktrees/branches from the fetched remote ref (`git fetch origin && git worktree add -b x ../wt origin/$BASE`), not from a possibly-stale local branch.
+Prevention upstream of this skill: cut worktrees/branches from the fetched remote ref (`git fetch origin && git worktree add --no-track -b x ../wt origin/$BASE`), not from a possibly-stale local branch.
 
 ---
 

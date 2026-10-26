@@ -97,7 +97,7 @@ Cherry-pick onto the current trunk on a **fresh branch**, and open a **new PR**:
 ```bash
 git -C "$WT" fetch -q origin
 git -C "$WT" log --oneline "origin/$TRUNK..HEAD"        # the commits the trunk is missing
-git worktree add -b <branch>-onto-trunk <path> "origin/$TRUNK"
+git worktree add --no-track -b <branch>-onto-trunk <path> "origin/$TRUNK"
 git -C <path> cherry-pick <sha>...                      # oldest first
 ```
 
