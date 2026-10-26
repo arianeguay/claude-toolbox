@@ -69,7 +69,7 @@ Two shapes, and the adapter says which one applies:
 
 - **The tracker only names the branch** (Linear): create it locally.
   ```bash
-  git worktree add -b <branch> .worktrees/<branch> origin/<default-branch>
+  git worktree add --no-track -b <branch> .worktrees/<branch> origin/<default-branch>
   ```
 - **The tracker creates the branch server-side** (GitHub `gh issue develop`, GitLab's branch API): the branch already exists on the remote and carries the link. **Attach** the worktree to it — creating a second local branch of the same name silently discards the link.
   ```bash

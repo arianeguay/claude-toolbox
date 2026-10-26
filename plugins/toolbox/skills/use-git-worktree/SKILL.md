@@ -40,8 +40,13 @@ hand-rolled name breaks their branch to issue linking.
 
 - **The tracker only names the branch** (Linear): create it locally.
   ```bash
-  git worktree add -b <branch> .worktrees/<branch> origin/<default-branch>
+  git worktree add --no-track -b <branch> .worktrees/<branch> origin/<default-branch>
   ```
+  `--no-track` is not optional. Without it the new branch tracks the trunk, so a plain
+  `git push`, or an editor's Sync button, pushes the feature commits straight onto the
+  trunk with no review. Observed 2026-10-26 on GRA-3802: VS Code detected the worktree
+  and synced three commits onto `main` before any MR existed. The first
+  `git push -u origin <branch>` sets the right upstream.
 - **The tracker creates the branch server-side** (GitHub `gh issue develop`, GitLab's
   branch API): it already exists on the remote and carries the link. **Attach** to it.
   Creating a second local branch of the same name silently discards that link.
