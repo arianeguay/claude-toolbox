@@ -147,6 +147,8 @@ Always print the **Not filing** section, even when empty — it shows the filter
 
 **6B — Apply `🔧`:** make the fix, run the repo's checks on touched files, report.
 
+Before committing to the task's branch, read its PR/MR state (`gh pr view <n> --json state` / `glab mr view <n> -F json`). Merged or closed → cut a new branch from the trunk and open a new PR/MR for the fixes; never push to the merged branch. The triage table waits on the user, and they may merge in that pause. Observed 2026-10-27 (GRA-3862): the MR merged while the table was open, and the fix push recreated its deleted branch.
+
 **6C — Resolve `❓`:** ask the user the one question that decides it, then treat as `📋` or `🗑️`.
 
 **6D — Cross-reference:** if a filed issue corresponds to a `TODO`/`FIXME` in the diff, edit the comment to carry the issue key. A TODO without a key is what this skill exists to stop.
