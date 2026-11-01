@@ -37,6 +37,7 @@ plugins/toolbox/       # the plugin itself — what `source: "./plugins/toolbox"
     issues-candidate/    # end-of-task sweep for follow-up work worth filing (trackers/ per host)
     triage/              # work through the triage queue: one-minute check per issue, keep/fix/drop table, act on go
     message-other-session/ # hand off a settled decision to a concurrent session before it redoes the work
+    brainstorm/          # open idea → one closed question at a time, criteria, side-by-side options, a decided/open/out-of-scope block
     plan/                # code-anchored implementation plan, bridging shaping decisions to build
     start-issue/         # bare issue link → branch/worktree, In Progress, build, PR, In Review (trackers/ per host, trunk.md)
     start-batch/         # several issues (keys, project, milestone, epic; capped) → order by verification cost, run start-issue per issue, sequence the merges (trunk-checked)
