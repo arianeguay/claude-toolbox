@@ -242,6 +242,11 @@ after you set its review state. Put it back and read it once more. Observed 2026
 STU-1572 sat In Review, its PR was rebased, force-pushed and merged, and the issue read In
 Progress with its proof still pending.
 
+A Contributes link does not protect an issue from closing either. Observed 2026-11-02: STU-2014,
+linked as Contributes, went to Done when its kernel PR merged, while the deployment PR its
+proof depended on was still open. Read every issue's state after each merge, Contributes
+links included, and reopen any that closed ahead of its proof.
+
 An epic link adds one rule: move the epic itself to Done only after every child is Done
 (the ones skipped in Step 0 included). While one child is still In Review, the epic stays open.
 
