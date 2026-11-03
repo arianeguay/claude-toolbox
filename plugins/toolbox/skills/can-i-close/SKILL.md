@@ -25,6 +25,14 @@ Sources, in order: this conversation, then the live state it touched. Re-check l
 | 5 | **A handed-off command** | Commands given to the user to run | The user has not reported the result, and the session was going to verify or record it |
 | 6 | **Tracker state** | Issues this session moved or promised to close | In Progress or In Review with no PR or comment that explains the state |
 
+**A keep-awake has more than one switch.** When row 3 covers keeping the machine awake,
+check every place it can live, not only the one the session used: `systemd-inhibit --list`
+for a session's own inhibitor, and the GNOME Caffeine extension's live state,
+`gsettings --schemadir ~/.local/share/gnome-shell/extensions/caffeine@patapon.info/schemas
+get org.gnome.shell.extensions.caffeine cli-toggle`. Its `user-enabled` key only restores
+state at login and says nothing about now. Observed 2026-11-03: the session's inhibitor had
+released, the check answered YES, and Caffeine was still on.
+
 A row that cannot be checked (a host down, an auth failure) is reported as `unverified`, never as clear.
 
 ## Step 3 — Verdict
