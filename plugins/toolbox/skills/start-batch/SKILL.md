@@ -117,6 +117,14 @@ sentence is.
 
 State the decision once, per pair, with the criterion. Do not re-litigate it later.
 
+**Same helper change on several branches: make it byte-identical.** Siblings built in
+parallel often need the same small change to a shared helper, and each makes its own
+version. Two versions of one change conflict at merge, however close they are. Before the
+merges, diff the helper across the branches and rewrite each into one identical hunk, folded
+into the commit that introduced it. Identical hunks rebase cleanly. Observed 2026-11-03 in
+care-orchestration-demo: two of four sibling branches widened `restGet` to take arrays, one
+with `string[]` and the other with `number[]`.
+
 ## Step 3 — Run each issue through `start-issue`
 
 Invoke `toolbox:start-issue` per issue, in the Step 1 order. It owns the worktree, the
