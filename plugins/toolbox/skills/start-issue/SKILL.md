@@ -159,6 +159,8 @@ touches nothing that already exists.
 
 Small, logical commits — one per change, not one per session. Commit as you go, not in a pile at the end.
 
+Real data stays in the issue: a name, address, team or timestamp the issue quotes from a real person or mailbox is replaced with an invented value before it enters code, a test, a commit message or the PR body. A pushed commit stays reachable by SHA after a squash (STU-2077).
+
 Scope discipline: every changed line traces to the issue. Findings outside it go to `toolbox:issues-candidate` at the end, not into this diff.
 
 ## Step 6 — Ship
