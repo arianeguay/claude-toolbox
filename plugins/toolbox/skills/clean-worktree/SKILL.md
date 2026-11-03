@@ -192,6 +192,16 @@ git branch -D "backup/<name>"
 git worktree prune
 ```
 
+**A worktree holding an initialized submodule needs `--force`, and that is not dirt.** Git refuses `remove` on it ("working trees containing submodules cannot be moved or removed") even when everything is committed, and the submodule's git dir under `.git/worktrees/<name>/modules/` goes with the worktree. Measured 2026-11-03: 8 of 9 merged worktrees in a repo with a `kernel/` submodule were refused. `--force` is safe only when all three hold, checked per worktree:
+
+```bash
+git -C "<wt>" status --porcelain --ignore-submodules=none   # empty
+git -C "<wt>/<sub>" status --porcelain                       # empty
+git -C "<wt>/<sub>" fetch -q origin && git -C "<wt>/<sub>" merge-base --is-ancestor HEAD origin/main
+```
+
+Fetch before the ancestor check: the worktree's submodule keeps its own stale remote refs, and `branch -r --contains` read 0 for a commit that was on `origin/main`. A submodule HEAD that fails the check may have been squash-merged in the submodule's own repo: compare its files to `origin/main` there (`git diff --stat HEAD origin/main -- <files of HEAD>` empty) before calling it unpushed. Claude Code's auto mode refuses `worktree remove --force` outright, so after the checks pass, hand the user the exact loop to run instead of attempting it.
+
 **After pruning dangling records, re-scan for orphaned branches.** `git worktree prune` removes the *worktree record* but never touches the branch it pointed at — that branch is now worktree-less and, if `[gone]`/merged, still needs its own `git branch -D`. Re-run the `[gone]` + squash-merge detection over remaining branches once pruning is done, and sweep any merged branch with no worktree:
 
 ```bash
