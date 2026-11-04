@@ -13,7 +13,7 @@ The step before `toolbox:plan`: the idea is open, and this skill settles **what*
 Every question costs the user energy; a question the context already answers is waste. Before the first one, read what exists:
 
 - **The code:** grep for what the idea touches. Does something close already exist? Where would it plug in?
-- **The tracker:** search open and recent issues on the same subject. A duplicate or a rejected attempt changes the conversation.
+- **The tracker:** search open and recent issues on the same subject. A duplicate or a rejected attempt changes the conversation. Also list every issue created in the last 24 hours, whatever its words: a parallel session may have filed the same idea minutes ago under other terms. Observed 2026-11-03: a keyword search missed HOM-1164 and HOM-1165, filed 20 minutes earlier, and an option they had already designed was dismissed as impossible.
 - **Memory and instructions:** CLAUDE.md, memory files, decisions earlier in the conversation. Don't re-ask what was settled.
 
 Open with what you found, in a few lines (what exists, what's been tried), then the first question.
