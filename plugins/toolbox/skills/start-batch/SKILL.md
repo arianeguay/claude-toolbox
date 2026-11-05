@@ -154,13 +154,27 @@ This reorders Step 1's output on purpose, and it is the one reason to. Say so wh
 For each PR after the first, in order:
 
 ```bash
-git -C <wt> fetch -q origin && git -C <wt> rebase origin/<default>
+git -C <wt> fetch -q origin
+REMOTE=$(git -C <wt> rev-parse origin/<branch>)
+git -C <wt> log --oneline "HEAD..$REMOTE"          # before the rebase; not empty = foreign commits
+git -C <wt> rebase origin/<default>
 <the project's test command, in that worktree>     # the rebase is a merge; prove it
-git -C <wt> push --force-with-lease
+git -C <wt> push --force-with-lease=<branch>:"$REMOTE"
 ```
 
 then wait for the check to go green before merging it. Rebasing all of them up front does
 not work — each merge moves the base again.
+
+**A fetch disarms a bare `--force-with-lease`.** The lease compares the remote with
+`origin/<branch>`, and the fetch has just moved that ref onto whatever is there, so the push
+overwrites it. Pin the lease to the head you read, and read the foreign commits before the
+rebase, while `HEAD` is still what you last pushed. For a merge, `git show --remerge-diff
+--format= <sha>` prints nothing when it only brought the trunk in, which the rebase covers. Any
+other change gets cherry-picked onto the branch first. A push refused with `stale info` means
+someone pushed after your read: start this block over. Observed 2026-11-03: a force-push
+overwrote a "Merge branch 'main'" commit someone else had put on a batch PR. The tree came out
+identical, but only by luck. Reproduced on a bare repo: the bare lease dropped a unique commit
+with exit 0, the pinned one refused it.
 
 **Prove the rebase, do not assume it.** Two changes that both apply cleanly can still
 disagree; the test run after the rebase is the only thing that says otherwise.
