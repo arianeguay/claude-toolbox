@@ -15,7 +15,7 @@ Removes stale worktrees and local branches left behind after MRs merge. Presents
 
 1. **Merged worktrees** — worktrees whose branch upstream is `[gone]` after prune.
 2. **Merged branches, no worktree** — local branches with `[gone]` upstream and no attached worktree.
-3. **`backup/*` branches** — local branches under `backup/` (temporary safety nets).
+3. **`backup/*` branches** — local branches under `backup/` (temporary safety nets), only once every commit on them is on a remote.
 4. **Dangling worktree records** — `git worktree prune` for worktrees whose directory was deleted manually.
 
 ## NEVER touch (hard guards)
@@ -50,9 +50,14 @@ git for-each-ref --format='%(refname:short) %(upstream:track)' refs/heads/   # l
 # backup/* branches
 git for-each-ref --format='%(refname:short)' 'refs/heads/backup/*'
 
+# per backup/* branch: its commits that no remote ref holds
+git log --oneline <branch> --not --remotes
+
 # dangling worktree records
 git worktree prune --dry-run -v
 ```
+
+**A `backup/*` branch is not always temporary.** One can be a deliberate archive, such as the history from before a repo went public: measured 2026-11-06, a backup branch held 40 commits missing from `origin/main`, with no copy on the remote, and was offered for deletion. Only a branch whose `git log --oneline <branch> --not --remotes` prints nothing is a candidate. Any output puts it in a **"backup with local-only commits"** group, with that commit count.
 
 Cross-check each candidate worktree for dirtiness before listing it as removable:
 
@@ -179,6 +184,9 @@ No merged PR found (never deletable):
 Could not classify — no host CLI (never deletable):
   stu-1099-old-experiment   tree diff is not a merged/unmerged signal once main has moved
 
+backup/* with local-only commits (never deletable):
+  backup/pre-public-history   40 commits on no remote
+
 Ignored files only here (never deletable):
   .worktrees/stu-1167-report-job  .plans/STU-1167.md, logs/run.json
 
@@ -192,7 +200,7 @@ The "NOT on the trunk" group (and any other never-deletable group) is informatio
 
 ### 4. Execute (only after approval)
 
-**Never execute against a never-deletable group** — "not on the trunk — recovery", "commits after the merge", "no merged PR found", "could not classify", "ignored files only here", and any group added by later steps of this procedure. Those are shown so the operator can act on them separately (cherry-pick, new PR, manual check); they are never part of what the y/N confirms.
+**Never execute against a never-deletable group** — "not on the trunk — recovery", "commits after the merge", "no merged PR found", "could not classify", "backup with local-only commits", "ignored files only here", and any group added by later steps of this procedure. Those are shown so the operator can act on them separately (cherry-pick, new PR, manual check); they are never part of what the y/N confirms.
 
 ```bash
 # Worktrees: remove the worktree, then force-delete its now-detached branch
@@ -245,6 +253,7 @@ Print what was removed and what was skipped (and why). Re-run `git worktree list
 | Skipping `git fetch --prune` | Without it upstreams never flip to `[gone]` and nothing is detected. |
 | `git worktree remove --force` on dirty trees | Never. Exclude dirty worktrees and warn; the user decides manually. |
 | Deleting `gitbutler/workspace` or `backup/*` you didn't list | Hard guards. `gitbutler/*` is internal; only delete `backup/*` when shown in preview. |
+| Offering every `backup/*` branch for deletion | A backup can be the only copy of its commits. Run `git log --oneline <branch> --not --remotes` first; any output makes it never deletable. |
 | Removing the current worktree / main checkout | Always exclude `git rev-parse --show-toplevel` and the first `git worktree list` entry. |
 | Confirming "clean" with `git worktree list` only | It hides branches orphaned by a pruned worktree. Also check `git for-each-ref refs/heads/` and sweep leftover `[gone]` branches. |
 | A stale worktree lock (dead session pid) blocks `remove` | `git worktree unlock <path>` first, then `remove`. Verify the pid is dead (`kill -0 <pid>`) before overriding a lock. |
