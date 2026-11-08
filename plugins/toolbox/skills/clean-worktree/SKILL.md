@@ -67,6 +67,20 @@ git -C "<worktree-path>" status --porcelain   # non-empty → DIRTY, exclude + w
 
 **Untracked symlinks are not dirt.** A worktree hook that symlinks gitignored artifact dirs back to the main checkout, under a `.gitignore` pattern with a trailing slash (`dir/` matches directories, never a symlink), makes every worktree read DIRTY. Measured 2026-10-06: 10 of 10 merged worktrees "dirty", all of it symlinks. Classify before excluding: an untracked entry that is a symlink (`[ -L ]`), or a directory holding only symlinks and files byte-identical to the trunk's tracked copy, is not work. Clear it with `find <path> -type l -delete` (unlinks, never follows) and remove the worktree without `--force`. Only ever clear paths listed by `git -C <wt> ls-files -o --exclude-standard`: a file untracked on the trunk can be tracked on an older branch, and deleting it by hand puts a tracked deletion in the tree.
 
+**Ignored files can be the last copy.** `status --porcelain` never lists gitignored files, and `git worktree remove` deletes them without a word. Measured 2026-11-06: 2 of 219 worktrees held ignored files found nowhere else (a plan file, QA run records); the dirtiness check above passed both. List them per worktree, skipping regenerable output, symlinks, and files byte-identical to the main checkout's copy:
+
+```bash
+git -C "<wt>" ls-files --others --ignored --exclude-standard \
+  | grep -vE '(^|/)(node_modules|\.next|__pycache__|\.pytest_cache|dist)/' \
+  | while IFS= read -r f; do
+      [ -L "<wt>/$f" ] && continue
+      cmp -s "<wt>/$f" "$MAIN/$f" && continue
+      printf '%s\n' "$f"
+    done
+```
+
+Any output → the worktree is **not a candidate**, whatever the gates below say. List it under **"ignored files only here"** with those paths, never their contents: a gitignored file is often a secret. The user copies what matters out, and the next run offers the worktree again.
+
 **PR lookup, once (if a host CLI is available).** Both gates below need to know, per branch, whether it has a merged PR and — critically — what commit that PR actually merged, which can differ from the branch's current tip (see the tip check at the end of this step). Ask the host once for the whole repo rather than per branch:
 
 ```bash
@@ -173,6 +187,9 @@ Could not classify — no host CLI (never deletable):
 backup/* with local-only commits (never deletable):
   backup/pre-public-history   40 commits on no remote
 
+Ignored files only here (never deletable):
+  .worktrees/stu-1167-report-job  .plans/STU-1167.md, logs/run.json
+
 Skipped (dirty — left untouched):
   .worktrees/feature-export  (3 uncommitted files)
 
@@ -183,7 +200,7 @@ The "NOT on the trunk" group (and any other never-deletable group) is informatio
 
 ### 4. Execute (only after approval)
 
-**Never execute against a never-deletable group** — "not on the trunk — recovery", "commits after the merge", "no merged PR found", "could not classify", "backup with local-only commits", and any group added by later steps of this procedure. Those are shown so the operator can act on them separately (cherry-pick, new PR, manual check); they are never part of what the y/N confirms.
+**Never execute against a never-deletable group** — "not on the trunk — recovery", "commits after the merge", "no merged PR found", "could not classify", "backup with local-only commits", "ignored files only here", and any group added by later steps of this procedure. Those are shown so the operator can act on them separately (cherry-pick, new PR, manual check); they are never part of what the y/N confirms.
 
 ```bash
 # Worktrees: remove the worktree, then force-delete its now-detached branch
