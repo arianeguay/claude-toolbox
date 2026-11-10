@@ -179,6 +179,11 @@ with exit 0, the pinned one refused it.
 **Prove the rebase, do not assume it.** Two changes that both apply cleanly can still
 disagree; the test run after the rebase is the only thing that says otherwise.
 
+**No required checks means no wait.** On a repo that requires none (a private repo on a free
+plan cannot), `gh pr merge`, `--auto` included, merges at once while the check is still queued.
+Wait on the branch's run with `gh run watch <id> --exit-status` first. Observed 2026-11-10 on
+family-timeline: a batch PR merged before its CI run had started.
+
 **A merge queue does the rebase and the test for you.** When the trunk has one, `gh pr merge
 --squash` is refused (`The merge strategy for main is set by the merge queue`), and a bare
 `gh pr merge` on a PR whose checks are still running does nothing and prints nothing. Use
