@@ -176,6 +176,12 @@ overwrote a "Merge branch 'main'" commit someone else had put on a batch PR. The
 identical, but only by luck. Reproduced on a bare repo: the bare lease dropped a unique commit
 with exit 0, the pinned one refused it.
 
+**A refused force-push means merge, not retry.** Where the permission layer denies every
+force-push, the branch's own included, put the rebased branch back on its pushed head
+(`git -C <wt> reset --hard origin/<branch>`), merge the trunk into it, run the same tests, and
+push plainly. The PR squash-merges the same either way. Observed 2026-11-10 on family-timeline:
+the pinned-lease push above was denied, and the merge commit landed with 443 tests green.
+
 **Prove the rebase, do not assume it.** Two changes that both apply cleanly can still
 disagree; the test run after the rebase is the only thing that says otherwise.
 
