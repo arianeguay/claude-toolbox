@@ -32,7 +32,7 @@ Pick the tracker adapter from `trackers/<TRACKER>.md` (`TRACKER` in `PROFILE.md`
 
 Read the full issue: title, description, labels, state, estimate, priority, relations, **and its comments** — decisions often live only there. Follow `blockedBy` links far enough to know whether this issue is startable at all.
 
-**A blocked issue does not start.** If an open blocker exists, say which one and stop. That is the only step that aborts the flow silently-free.
+**A blocked issue does not start.** If an open blocker exists, say which one and stop. That is the only step that aborts the flow silently-free. A blocker whose PR is already open is not a stop under `start-batch`: see its "A blocker that already has an open PR" rule.
 
 **Test the blocker's reason before obeying it.** A `blockedBy` link records a causal claim made when the issue was filed, and it outlives the reasoning behind it. Find the sentence (in either issue, or its comments) that says why it blocks. If that reason is a fact a cheap read-only check can test (a config value, free space, a file's presence), run the check first:
 
