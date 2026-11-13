@@ -101,6 +101,17 @@ comes first even if it is the expensive one — and say so, because it means the
 waits. A `blockedBy` link orders the whole batch, so test its stated reason before ordering on
 it (start-issue Step 1): one false relation freezes every issue downstream of it.
 
+**A blocker that already has an open PR does not stop the issue behind it.** Inside a batch, a
+`blockedBy` whose blocker is In Review (its PR open, not merged) lets the dependent start: cut
+its worktree from the blocker's branch and open its PR against the trunk, as start-issue Step 2
+describes for an unmerged premise. Two blockers: cut from one, merge the other in. Stopping to
+wait for each merge turns a chain of three issues into three round trips with the user. The PR
+says that its diff carries the base PR's commits until the base merges, and the Step 4 merge order
+puts the base first. Only a blocker with no PR yet, or one whose approach is still undecided, holds
+the issue back. Observed 2026-11-13 on the Mile-End parking batch (HOM-1383 to HOM-1389): HOM-1386
+waited for the merge of HOM-1383 and HOM-1384, then HOM-1387 and HOM-1388 waited for HOM-1386,
+while HOM-1388 stacked on an open PR without trouble.
+
 ## Step 2 — Should any of these be one PR?
 
 The user usually asks. Answer on the artifact, not on the topic:
