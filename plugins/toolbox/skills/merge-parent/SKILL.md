@@ -152,18 +152,16 @@ Conflict resolved: src/components/Foo.tsx
 Keep the parent version, ours, or both? (waiting for your answer before committing)
 ```
 
-If the check is **clean** (no unexplained drop on either side), still show the per-file resolution diff and ask for an explicit go-ahead before committing:
+If the check is **clean** on every file (no unexplained drop on either side, no logical conflict), there is no breaking change: print the per-file result and commit + push without asking.
 
 ```
 Conflict resolved: src/hooks/useSomething.ts
   ✅ No line lost from the parent
   ✅ No line lost from our branch
   (independent additions on both sides, merged)
-
-OK to commit + push?
 ```
 
-Once approved and every file is verified:
+Any 🚨 stops the run until the user decides. Once every file is verified (or the user has decided on the flagged ones):
 
 ```bash
 git -C "$WORKTREE" add <resolved files>
@@ -192,5 +190,5 @@ Commit: abc1234 "Merge remote-tracking branch 'origin/develop' into ..."
 | Detached HEAD | Stop — ask the user to check out a branch |
 | Line lost from parent, untouched by our branch | 🚨 Stop — likely silent revert, show the summary, wait for a decision |
 | Logical conflict (not just independent additions) | Stop — show both versions, wait for a decision |
-| Clean conflict (independent additions) | Verify (Step 6), show the diff, wait for explicit go-ahead before commit+push |
+| Clean conflict (independent additions) | Verify (Step 6), show the result, commit + push without asking |
 | Push rejected (remote ahead) | `git -C "$WORKTREE" pull --rebase origin "$BRANCH"` then re-push |
