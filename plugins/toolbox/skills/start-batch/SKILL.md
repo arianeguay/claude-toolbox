@@ -139,13 +139,20 @@ with `string[]` and the other with `number[]`.
 ## Step 3 — Run each issue through `start-issue`
 
 Invoke `toolbox:start-issue` per issue, in the Step 1 order. It owns the worktree, the
-state transitions, the build and the PR. Two batch-level additions:
+state transitions, the build and the PR. Batch-level additions:
 
 - **The worktrees are siblings and the session is not in any of them.** Address every one
   explicitly (`git -C <wt>`, `make -C <wt>`, absolute paths). With several open at once,
   a bare `git` command is a coin flip.
 - **Do not wait on the long run.** Its worktree exists and its measurement is burning;
   come back to write it up when it lands.
+- **A follow-up sent to a subagent whose PR is open starts with the PR's live state.** The
+  user merges batch PRs as they open, so the brief says: run `gh pr view <n> --json state`
+  first, and if it is merged, cut a new branch from the trunk and open a new PR. Observed
+  2026-11-13 on family-timeline: #454 and #456 merged before their follow-ups arrived.
+- **A subagent stops its own dev server before the full test run.** A test that starts
+  its own server fails on the lock the agent's render server still holds, and reads like a
+  regression. Observed 2026-11-13: two agents failed `scope-leak.e2e` this way.
 
 ## Step 4 — Sequence the merges
 
