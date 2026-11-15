@@ -64,7 +64,7 @@ Rules: one line of reason per issue, the ticket key always beside words that say
 
 ## Step 5: Act on go
 
-1. **Tracker moves first**, in parallel: state, backfilled metadata, relations. Linear `labels` replaces the whole set, so use `addLabels`. A label group allows one label (`claude:local` vs `claude:ariane`): swapping means removing the other in the same save.
+1. **Tracker moves first**, in parallel: state, backfilled metadata, relations. Linear `labels` replaces the whole set, so use `addLabels`. A single-select label group (`repo:*`, `need:*`) allows one label: swapping means removing the other in the same save. Whose turn an issue is is its delegate, not a label: delegate it to Homelab for an agent, remove the delegate and add its `step:*` for Ariane.
 2. **Drops:** post the comment first, then cancel. The comment names the filter and what would bring the issue back, and ends with:
 
    ```markdown
