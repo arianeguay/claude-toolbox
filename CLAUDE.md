@@ -16,8 +16,10 @@ real browser.
   Linear/GitHub/GitLab workspace end to end, not just reading the adapter markdown.
 - `browser-test` — verification means driving a real browser.
 
-Editing any of these skills' own markdown is `claude:web`; proving the skill actually
-drives the live system it targets is `claude:local`. Everything else in this repo defaults
-to `claude:web`.
+Editing any of these skills' own markdown runs on any host, so it carries no `host:*`
+label. Proving the skill actually drives the live system it targets needs the laptop
+(`host:laptop`: a live tracker workspace logged in, a real browser). Everything else in this
+repo runs anywhere.
 
-**Test:** writable on web but unprovable there means `claude:local`.
+**Test:** the evidence, not the edit: work that is writable anywhere but provable only on the
+laptop gets `host:laptop`.
