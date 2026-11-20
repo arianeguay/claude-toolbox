@@ -75,6 +75,15 @@ sessions ran this skill on overlapping sets twelve minutes apart; the second one
 wrote into the first one's worktree and opened PRs on its unpushed commits. It surfaced only
 because a file about to be edited had an mtime 14 seconds old.
 
+**When `ListAgents` lists too many sessions to ask, find the holder by key instead.** For each
+key, search the session transcripts for it (`search_session_transcripts`), then read each hit
+with `get_session`: `isRunning` and `lastActivityAt`. Compare those with the mtimes of the
+worktree's uncommitted files. A session that is not running, and whose last activity sits
+minutes after the last edit, left the work behind: take the worktree over and finish it
+rather than starting the issue fresh. Observed 2026-11-20 with 283 peers listed: HOM-1562's
+worktree held 9 uncommitted files edited at 13:34 to 13:36, and its session was last active
+at 13:41 the day before, not running.
+
 ## Step 1 — Order them, on stated criteria
 
 Never "I'll start with the easy one". Score each issue on three axes the user can check:
