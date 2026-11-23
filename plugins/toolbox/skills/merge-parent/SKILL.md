@@ -69,7 +69,7 @@ git -C "$WORKTREE" merge "origin/$PARENT" --no-edit
 ```
 ✅ Merge succeeded — no conflicts
 ```
-Push immediately:
+Run Step 7, then push:
 ```bash
 git -C "$WORKTREE" push origin "$BRANCH"
 ```
@@ -166,8 +166,28 @@ Any 🚨 stops the run until the user decides. Once every file is verified (or t
 ```bash
 git -C "$WORKTREE" add <resolved files>
 git -C "$WORKTREE" commit --no-edit
-git -C "$WORKTREE" push origin "$BRANCH"
 ```
+
+Then run Step 7, and push.
+
+## Step 7 — Names the parent renamed
+
+**Mandatory after every merge, clean or resolved, before the push.** Steps 5 and 6 only
+see lines that disappeared. When the parent renamed a field, a function or an argument,
+git applies the rename where our branch left the line alone and keeps the old name in the
+lines our branch *added*. No conflict, no lost line, and the branch is broken.
+
+```bash
+BASE=$(git -C "$WORKTREE" merge-base HEAD^1 HEAD^2)
+# What the parent changed: read the -/+ pairs for renamed identifiers
+git -C "$WORKTREE" diff "$BASE" HEAD^2
+# Old names still used by what our branch added
+git -C "$WORKTREE" diff "$BASE" HEAD^1 | grep '^+' | grep -wE '<old_name_1>|<old_name_2>'
+```
+
+Any hit is a semantic conflict: move that line to the new name, commit it on its own,
+and run the branch's tests before pushing, since grep only finds the names you thought
+to list.
 
 ## Final summary
 
@@ -177,6 +197,7 @@ Merge origin/develop → feature/bulk-task-activities
   ✅ Fetch origin/develop
   ✅ Clean merge (or: resolved 1 conflict in useSomething.ts)
   ✅ Anti-drop check: no line lost from parent
+  ✅ Renames check: no old name in our added lines
   ✅ Push origin/feature/bulk-task-activities
 
 Commit: abc1234 "Merge remote-tracking branch 'origin/develop' into ..."
@@ -192,4 +213,5 @@ Commit: abc1234 "Merge remote-tracking branch 'origin/develop' into ..."
 | Logical conflict (not just independent additions) | Stop — show both versions, wait for a decision |
 | Clean conflict (independent additions) | Verify (Step 6), show the result, commit + push without asking |
 | add/add conflicts on files this branch inherited from a stacked parent that was squash-merged | Git has no shared base for them. Use the old parent's tip as base: `git merge-file -p ours.txt <parent-tip>.txt theirs.txt`, then run Step 6 as usual |
+| Clean merge, but the parent renamed identifiers our new lines use | Step 7: grep our added lines for the old names, fix them, run the tests. A clean stacked merge left a child MR on renamed fields on 2026-11-23 |
 | Push rejected (remote ahead) | `git -C "$WORKTREE" pull --rebase origin "$BRANCH"` then re-push |
