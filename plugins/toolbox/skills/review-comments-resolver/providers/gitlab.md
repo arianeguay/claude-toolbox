@@ -15,10 +15,17 @@ glab mr view "$MR" -F json   # iid, title, web_url
 
 ## List comments
 ```bash
-# Use /notes (NOT /discussions) — /discussions --paginate silently drops items on large MRs.
+# Threads (ids to reply to and resolve): explicit page loop, never --paginate,
+# which silently dropped discussions on a large MR.
+page=1; while :; do
+  out=$(glab api "projects/:id/merge_requests/$IID/discussions?per_page=100&page=$page")
+  [ "$(echo "$out" | jq length)" -eq 0 ] && break
+  echo "$out"; page=$((page+1))
+done
+# Completeness check only: /notes has no `discussion_id`, so it can't give thread ids.
 glab api "projects/:id/merge_requests/$IID/notes" --paginate
 ```
-Notes are flat; group by `discussion_id` to reconstruct threads. Unresolved = note with `resolvable: true` and `resolved: false`. Also collect `resolvable: false` notes with no `position`: GitLab never makes a plain overview comment resolvable, so the filter alone drops human general feedback. Inline = `position != null`; general = `position == null`. The `discussion_id` (hex) is what you reply to and resolve.
+Each discussion's `id` (hex) is what you reply to and resolve; its `notes[]` hold the thread. Unresolved = a discussion with a `resolvable: true` note whose `resolved` is false. Also collect discussions whose first note is `resolvable: false` with no `position`: GitLab never makes a plain overview comment resolvable, so the filter alone drops human general feedback. Inline = `position != null`; general = `position == null`. If the unresolved count from `/notes` exceeds the one from `/discussions`, a page was dropped: re-fetch before triaging.
 
 ## Identify bots (by `author.username`)
 - **Cursor Bugbot** — `^project_\d+_bot_`.
@@ -52,4 +59,4 @@ Then, once CodeRabbit answers, resolve the discussion that now holds that note (
 
 ## Auth / errors
 - Not authenticated → `glab auth login`.
-- If unresolved count looks low vs the MR UI, cross-check with `…/discussions --paginate` as a secondary source and merge — but `/notes` is primary.
+- If unresolved count looks low vs the MR UI, compare with the `/notes` count (see List comments).

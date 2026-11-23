@@ -191,4 +191,5 @@ Commit: abc1234 "Merge remote-tracking branch 'origin/develop' into ..."
 | Line lost from parent, untouched by our branch | 🚨 Stop — likely silent revert, show the summary, wait for a decision |
 | Logical conflict (not just independent additions) | Stop — show both versions, wait for a decision |
 | Clean conflict (independent additions) | Verify (Step 6), show the result, commit + push without asking |
+| add/add conflicts on files this branch inherited from a stacked parent that was squash-merged | Git has no shared base for them. Use the old parent's tip as base: `git merge-file -p ours.txt <parent-tip>.txt theirs.txt`, then run Step 6 as usual |
 | Push rejected (remote ahead) | `git -C "$WORKTREE" pull --rebase origin "$BRANCH"` then re-push |
