@@ -126,7 +126,7 @@ Run the repo's own checks on touched files (detect: `npm run check`/`type-check`
 2. Push every fix, so it re-checks against the pushed head.
 3. Once every CodeRabbit finding is handled, post **one general PR/MR comment** (not a thread reply): `@coderabbitai resolve`. It resolves all its threads and answers in that general comment, so nothing lands back in a thread.
 4. On GitLab, CodeRabbit's "Action performed" reply turns that general comment into a thread of its own, which is open. It's your thread, not a CodeRabbit finding, so resolve it by hand (the gate leaves it alone).
-5. Poll the threads for ~1 min to confirm none reopened.
+5. Wait for its answer before concluding anything: on GitLab it took 11 minutes (MR !2114, 2026-11-20). Allow ~15 min, never post a second request (it answers each one), and report the threads as pending rather than ignored. Once it answers, poll the threads for ~1 min to confirm none reopened.
 
 **8C — sign every posted reply.** Append this footer, verbatim, as the last line of each thread reply (8A dismissals, 8B tracker notes, and 6C clarify questions alike):
 
@@ -148,7 +148,7 @@ Report: `Resolved {N} thread(s) ({Y} Bugbot, {Z} human); handed {X} back to Code
 The exact API calls — detect PR/MR, list inline + general comments, await in-progress bots, reply to a thread, resolve a thread — live in the provider file for the detected host:
 
 - **`providers/github.md`** — `gh` + GraphQL review threads (resolution is GraphQL-only; REST comment id ≠ thread id).
-- **`providers/gitlab.md`** — `glab` REST notes/discussions (use `/notes`, not `/discussions`).
+- **`providers/gitlab.md`** — `glab` REST discussions (page loop, `/notes` only as a count check).
 
 Read the one matching `$HOST` and use its worked flow wherever a step says *(see provider file)*.
 
