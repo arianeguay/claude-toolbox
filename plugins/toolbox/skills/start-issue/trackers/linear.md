@@ -95,7 +95,10 @@ its type decides what a merge does to the issue. Write one line in the descripti
 
 Measured, not assumed:
 
-- A bare `<KEY>` in the description creates no link at all (2026-09-15, ops#55).
+- A bare `<KEY>` in the description creates no link at all (2026-09-15, ops#55). The
+  `gitBranchName` branch still links it, and on GitLab that link closes on merge: an MR
+  with only a bare key in its body moved its issue to the team's merge status 9 s after
+  merging (2026-11-06).
 - The body line wins over the branch name. A PR on the `gitBranchName` branch with
   `Contributes to <KEY>` in its body merged and left the issue open, while the same team's
   merge automation closed Resolves-linked issues the day before (claude-toolbox#18,
