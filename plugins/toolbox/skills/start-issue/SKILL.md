@@ -180,10 +180,10 @@ Decide from the issue's proof criteria, not from the diff:
 | Type | When |
 | -- | -- |
 | **Resolves** | This is the issue's last open PR, and merging it satisfies every proof criterion the issue states (tests, CI). |
-| **Contributes** | The issue stays open after merge: its proof needs a post-merge run or a calendar gate (a due date), a manual or host step remains, or another PR for the same issue is still open. |
+| **Contributes** | The issue stays open after merge: its proof needs a post-merge run or a calendar gate (a due date), a manual or host step remains after the merge, or another PR for the same issue is still open. A manual check done while the PR is in review (the walkthrough an issue's verification section describes) runs before the merge, so it does not make a PR Contributes. |
 | **Related** | The PR advances none of the issue's proof criteria: a fix found along the way. |
 
-Unsure between Resolves and Contributes → Contributes. A wrong Contributes costs one manual close; a wrong Resolves closes an unproven issue at merge, and nothing reopens it.
+Unsure between Resolves and Contributes → Contributes. A wrong Contributes costs one manual close, and nothing reminds anyone to make it (three issues sat in review 1 to 4 days after their MRs merged, 2026-11); a wrong Resolves closes an unproven issue at merge, and nothing reopens it.
 
 The key goes in the PR/MR **title** only for Resolves. The adapter gives the words for each type.
 
