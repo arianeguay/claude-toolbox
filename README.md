@@ -3,7 +3,7 @@
 **Instance-agnostic** Claude Code skills — the ones that are useful in *any* project, not
 tied to a specific codebase or employer. This repo is a **Claude Code plugin marketplace**:
 it ships one plugin, `toolbox`, containing every skill here plus the worktree/skill-safety
-hooks. Sync across machines is `/plugin marketplace update`.
+hooks. Sync across machines is `claude plugin marketplace update` then `claude plugin update toolbox@arianeguay`.
 
 > Project-coupled skills don't belong here — they live with their project. The bar for
 > inclusion is: *would this still make sense on a brand-new machine, in a project Claude
@@ -101,13 +101,13 @@ The repo is the source of truth. To ship a change everywhere:
 
 1. Commit + push to `main`.
 2. Bump `version` in `plugins/toolbox/.claude-plugin/plugin.json` (users only receive updates when it changes).
-3. On each machine: `/plugin marketplace update` — Claude Code refetches the plugin.
+3. On each machine: `claude plugin marketplace update`, then `claude plugin update toolbox@arianeguay`, then restart. The marketplace update alone refreshes the catalog, not the installed plugin.
 
 ## Add a skill
 
 1. Drop a `plugins/toolbox/skills/<name>/SKILL.md` (and any support files) into the repo.
 2. Commit + push, bump `plugin.json` version.
-3. Other machines: `/plugin marketplace update`. The skill appears as `/toolbox:<name>`.
+3. Other machines: same two commands and a restart. The skill appears as `/toolbox:<name>`.
 
 Keep it instance-agnostic: no employer names, no internal hostnames, no credentials, no
 hardcoded branch names. Project-specific values belong in `PROFILE.md`.
@@ -125,7 +125,7 @@ claude --plugin-dir /path/to/claude-toolbox/plugins/toolbox
 
 The plugin runs from a version-pinned copy under `~/.claude/plugins/cache/`, not from this
 checkout — editing a skill here does nothing until that copy is refreshed. After an edit,
-either bump `plugins/toolbox/.claude-plugin/plugin.json` and `/plugin marketplace update arianeguay`,
+either bump `plugins/toolbox/.claude-plugin/plugin.json` and run both update commands above,
 or re-sync the current version in place:
 
 ```bash
