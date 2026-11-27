@@ -40,7 +40,7 @@ plugins/toolbox/       # the plugin itself — what `source: "./plugins/toolbox"
     brainstorm/          # open idea → one closed question at a time, criteria, side-by-side options, a decided/open/out-of-scope block
     plan/                # code-anchored implementation plan, bridging shaping decisions to build
     start-issue/         # bare issue link → branch/worktree, In Progress, build, PR, In Review (trackers/ per host, trunk.md)
-    start-batch/         # several issues (keys, project, milestone, epic; capped) → order by verification cost, run start-issue per issue, sequence the merges (trunk-checked)
+    start-batch/         # several issues (keys, project, milestone, epic; capped) → order by verification cost, group what can share a PR, run start-issue per group, sequence the merges (trunk-checked)
   hooks/
     hooks.json           # SessionStart/PreToolUse/PostToolUse wiring (paths via ${CLAUDE_PLUGIN_ROOT})
     guard-skill-deletion.sh          # PreToolUse(Bash) — stub, see Hooks below
