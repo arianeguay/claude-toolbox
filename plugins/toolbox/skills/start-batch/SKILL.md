@@ -1,14 +1,14 @@
 ---
 name: start-batch
-description: Take several tracker issues from "link pasted" to "shipped" — a list of keys, a project, a milestone or an epic — capped per run; enumerates the open issues, orders them by what their verification costs, runs each through start-issue, sequences the merges, and closes with one adhd-summary for the set. Use when the user passes more than one issue key, drops a milestone/project/epic link, or says "do every open task in this milestone", "clear this milestone", "fais tout le milestone", "fais ces issues". Do NOT use for a single issue (that's `start-issue`) or to plan a batch without building it.
+description: Take several tracker issues from "link pasted" to "shipped" — a list of keys, a project, a milestone or an epic — capped per run; enumerates the open issues, orders them by what their verification costs, groups the ones that can share a PR, runs each group through start-issue, sequences the merges, and closes with one adhd-summary for the set. Use when the user passes more than one issue key, drops a milestone/project/epic link, or says "do every open task in this milestone", "clear this milestone", "fais tout le milestone", "fais ces issues". Do NOT use for a single issue (that's `start-issue`) or to plan a batch without building it.
 user-invocable: true
 ---
 
 # Start batch
 
-`start-issue` for one ticket, N times, plus the four things that only exist when the
-tickets are a *set*: what order they run in, what starts in the background first, what
-order they merge in, and one summary at the end instead of N.
+`start-issue` for one ticket, N times, plus the five things that only exist when the
+tickets are a *set*: what order they run in, what starts in the background first, which
+of them share a PR, what order they merge in, and one summary at the end instead of N.
 
 **Principle:** a batch, not a queue. The cheap issues are the deliverable
 you can hand back today; the expensive one decides when the batch is done. Those are
@@ -121,21 +121,46 @@ the issue back. Observed 2026-11-13 on the Mile-End parking batch (HOM-1383 to H
 waited for the merge of HOM-1383 and HOM-1384, then HOM-1387 and HOM-1388 waited for HOM-1386,
 while HOM-1388 stacked on an open PR without trouble.
 
-## Step 2 — Should any of these be one PR?
+## Step 2 — Consolidate into as few PRs as the batch allows
 
-The user usually asks. Answer on the artifact, not on the topic:
+**If issues can share one PR, they do.** Each PR costs the reviewer a context switch, a
+pipeline and a merge, and costs the batch a rebase in Step 4. One issue stays one shippable
+change in the tracker; the PR is only how it reaches review.
 
-**Merge into one PR when** the issues edit the *same paragraph* of the same file, or one's
-verification is literally the other's diff. Two issues that would conflict with themselves
-are one change filed twice.
+Issues share a PR when all of these hold:
 
-**Keep separate** otherwise — the default, and it was right for every issue in the session
-this skill was written from. One issue = one shippable change, the tracker's issue↔PR link
-stays intact, and same-file conflicts in *different* sections are cheaper to rebase than a
-merged PR is to review. Touching the same file is not a reason to merge; touching the same
-sentence is.
+- same repo and same trunk;
+- same area: one title names them all (`Rulebook tweaks`), one reviewer reads them in one sitting;
+- each is simple under start-issue Step 4;
+- they ship together: no separate release, deploy or customer timing, no flag on one only;
+- their proof is alike: none waits on a long run, a calendar gate or a manual step the others
+  do not need, and each one's link type is Resolves.
 
-State the decision once, per pair, with the criterion. Do not re-litigate it later.
+An issue keeps its own PR when any of these hold:
+
+- someone may want to revert it alone: a migration, a contract change, a behaviour change a
+  user will notice on the golden path;
+- it is complex under start-issue Step 4;
+- its link type is Contributes (it stays open after the merge);
+- it is the batch's CI or tooling change (Step 4 merges it first, alone).
+
+Two issues that edit the same paragraph of a file are one change filed twice: same PR,
+whatever the list above says.
+
+A shared PR is built like this:
+
+- **Branch and worktree:** the tracker's branch name for the group's first issue, in Step 1 order.
+- **Commits:** one per issue, each prefixed with its own key, so the history reads per issue
+  and one can still be reverted alone.
+- **Body:** one link line per issue (`Fixes A`, `Fixes B`), each closing its own issue at
+  merge, then one short "to check" per issue.
+- **Title:** names the group (`Rulebook tweaks: quotes, strike-through, run times`), no key.
+- **Tracker:** every issue of the group moves to In Progress and to review together, each
+  linked to the same PR.
+
+State the grouping once, per group, with the criterion that decided it. Do not re-litigate
+it later. Observed 2026-11-27: a batch of four 1-point UI fixes in one feature, one file
+each, went out as four PRs; the lead reviewer asked for them as one "tweaks" PR.
 
 **Same helper change on several branches: make it byte-identical.** Siblings built in
 parallel often need the same small change to a shared helper, and each makes its own
@@ -145,10 +170,12 @@ into the commit that introduced it. Identical hunks rebase cleanly. Observed 202
 care-orchestration-demo: two of four sibling branches widened `restGet` to take arrays, one
 with `string[]` and the other with `number[]`.
 
-## Step 3 — Run each issue through `start-issue`
+## Step 3 — Run each group through `start-issue`
 
-Invoke `toolbox:start-issue` per issue, in the Step 1 order. It owns the worktree, the
-state transitions, the build and the PR. Batch-level additions:
+Invoke `toolbox:start-issue` per Step 2 group, in the Step 1 order. It owns the worktree,
+the state transitions, the build and the PR. A group of several issues runs it once: its
+worktree and PR are the group's, its build commits one issue at a time, and its state
+transitions apply to every issue in the group. Batch-level additions:
 
 - **The worktrees are siblings and the session is not in any of them.** Address every one
   explicitly (`git -C <wt>`, `make -C <wt>`, absolute paths). With several open at once,
